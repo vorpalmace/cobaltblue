@@ -1,0 +1,11 @@
+#!/bin/bash
+# Check if bootc has a staged/queued deployment snapshot
+STATUS=$(bootc status --json | grep '"staged": true')
+
+if [ -n "$STATUS" ]; then
+    notify-send \
+        --icon="software-update-available" \
+        --urgency=normal \
+        "System Update Ready" \
+        "A new bootc OS snapshot has been staged. Reboot your system to apply updates."
+fi

@@ -1,0 +1,10 @@
+[Unit]
+Description=Check for staged bootc OS updates hourly
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=1h
+Unit=bootc-notifier.service
+
+[Install]
+WantedBy=timers.target
