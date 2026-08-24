@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-  schedule:
-    - cron: '0 * * * *'
 
 jobs:
   build:
@@ -26,15 +24,21 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Running with sudo bypasses all user namespace / cgroup 125 crashes
+      # Running with sudo bypasses all user namespace / cgroup 125 crashes.
+      # sudo strips the environment by default, so REGISTRY_AUTH_FILE (set by
+      # podman-login) would otherwise be invisible to root and the push
+      # would fail auth even though the login step "succeeded".
       - name: Build Image (Verbose & Root)
         run: |
-          sudo buildah bud \
+          sudo --preserve-env=REGISTRY_AUTH_FILE buildah bud \
             --debug \
             --loglevel 5 \
+            --authfile "$REGISTRY_AUTH_FILE" \
             --tag ghcr.io/${{ github.repository_owner }}/cobaltblue:latest \
             --file ./Containerfile .
 
       - name: Push Image
         run: |
-          sudo podman push ghcr.io/${{ github.repository_owner }}/cobaltblue:latest
+          sudo --preserve-env=REGISTRY_AUTH_FILE podman push \
+            --authfile "$REGISTRY_AUTH_FILE" \
+            ghcr.io/${{ github.repository_owner }}/cobaltblue:latest
