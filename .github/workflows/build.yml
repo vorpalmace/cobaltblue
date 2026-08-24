@@ -7,6 +7,9 @@ on:
   schedule:
     - cron: '0 * * * *'
 
+env:
+  ACTIONS_STEP_DEBUG: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -19,15 +22,6 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Buildah Build
-        id: build-image
-        uses: redhat-actions/buildah-build@v3
-        with:
-          image: cobaltblue
-          tags: latest 44
-          containerfiles: |
-            ./Containerfile
-
       - name: Log in to GitHub Container Registry
         uses: redhat-actions/podman-login@v1
         with:
@@ -35,9 +29,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Push to GitHub Registry
-        uses: redhat-actions/push-to-registry@v2
-        with:
-          image: ${{ steps.build-image.outputs.image }}
-          tags: ${{ steps.build-image.outputs.tags }}
-          registry: ghcr.io/${{ github.repository_owner }}
+      # Direct Buildah command unmasks all DNF & build errors in stdout/stderr
+      - name: Build Image with Full Log Output
+        run: |
+          buildah bud \
+            --isolation=chroot \
+            --tag ghcr.io/${{ github.repository_owner }}/cobaltblue:latest \
+            --file ./Containerfile .
+
+      - name: Push to Registry
+        run: |
+          podman push ghcr.io/${{ github.repository_owner }}/cobaltblue:latest
