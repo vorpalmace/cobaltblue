@@ -3,7 +3,6 @@ FROM quay.io/fedora-ostree-desktops/silverblue:44
 
 # Install system packages
 RUN dnf -y install \
-    systemd-boot \
     NetworkManager-openvpn-gnome \
     fish \
     distrobox \
