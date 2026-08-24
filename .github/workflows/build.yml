@@ -7,9 +7,6 @@ on:
   schedule:
     - cron: '0 * * * *'
 
-env:
-  ACTIONS_STEP_DEBUG: true
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -29,14 +26,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Direct Buildah command unmasks all DNF & build errors in stdout/stderr
-      - name: Build Image with Full Log Output
+      # Running with sudo bypasses all user namespace / cgroup 125 crashes
+      - name: Build Image (Verbose & Root)
         run: |
-          buildah bud \
-            --isolation=chroot \
+          sudo buildah bud \
+            --debug \
+            --loglevel 5 \
             --tag ghcr.io/${{ github.repository_owner }}/cobaltblue:latest \
             --file ./Containerfile .
 
-      - name: Push to Registry
+      - name: Push Image
         run: |
-          podman push ghcr.io/${{ github.repository_owner }}/cobaltblue:latest
+          sudo podman push ghcr.io/${{ github.repository_owner }}/cobaltblue:latest
