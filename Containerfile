@@ -7,6 +7,8 @@ RUN dnf -y install \
     fish \
     distrobox \
     libnotify \
+    fastfetch \
+    htop \
     && dnf clean all
 
 # Tell bootc to use systemd-boot instead of GRUB2
