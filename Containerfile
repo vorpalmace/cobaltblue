@@ -1,5 +1,5 @@
 # Start from Fedora Silverblue bootable container base
-FROM quay.io/fedora/fedora-silverblue:44
+FROM quay.io/fedora-ostree-desktops/silverblue:44
 
 # Install system packages
 RUN dnf -y install \
