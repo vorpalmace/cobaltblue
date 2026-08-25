@@ -11,9 +11,9 @@ RUN dnf -y install \
     htop \
     && dnf clean all
 
-# Tell bootc to use systemd-boot instead of GRUB2
-RUN mkdir -p /usr/lib/bootc/install && \
-    echo 'bootloader = "systemd-boot"' > /usr/lib/bootc/install/00-bootloader.toml
+# Strip GRUB/bootupd so bootc falls back to systemd-boot by default and install the actual systemd-boot binaries
+RUN dnf remove -y grub2-efi-x64 grub2-efi-x64-cdboot shim-x64 grub2-tools grub2-tools-minimal grubby bootupd || true
+RUN dnf install -y systemd-boot-unsigned && dnf clean all
 
 # Set Fish as default shell & enable Podman socket
 RUN chsh -s /usr/bin/fish
