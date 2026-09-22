@@ -6,8 +6,9 @@ RUN dnf -y remove firefox || true && \
     rm -f /etc/flatpak/remotes.d/fedora*.flatpakrepo \
           /usr/share/flatpak/remotes.d/fedora*.flatpakrepo
 
-# Enable LACT COPR, install base system packages + LACT, and enable services
-RUN dnf -y copr enable ilyaz/LACT && \
+# Install COPR plugin, enable LACT repository (-y required), install packages, enable service
+RUN dnf -y install dnf-plugins-core && \
+    dnf -y copr enable ilyaz/LACT && \
     dnf -y install \
     # NetworkManager-openvpn-gnome \
     fish \
