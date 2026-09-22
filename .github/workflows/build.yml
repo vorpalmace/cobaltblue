@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - main
+  # Automatically build every day at 04:00 UTC to pull latest Fedora updates
+  schedule:
+    - cron: '0 4 * * *'
+  # Allows triggering builds manually from the GitHub Actions tab
+  workflow_dispatch:
 
 jobs:
   build:
