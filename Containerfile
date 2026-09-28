@@ -84,9 +84,6 @@ RUN jq '.transports.docker["ghcr.io/vorpalmace/cobaltblue"] = [{"type": "sigstor
         /etc/containers/policy.json > /tmp/policy.json && \
     mv /tmp/policy.json /etc/containers/policy.json
 
-# Load ntsync at boot so newer Proton builds can use it for faster Windows sync
-RUN echo ntsync > /usr/lib/modules-load.d/ntsync.conf
-
 # Kernel arguments:
 # - amd_pstate=disable: the board's firmware lacks the CPPC support amd_pstate
 #   needs, so it only produced errors at boot; this silences it and keeps acpi-cpufreq
