@@ -42,7 +42,7 @@ RUN dnf -y install dnf5-plugins && \
     systemctl disable NetworkManager-wait-online.service && \
     dnf clean all
 
-# Replace the stock kernel with CachyOS's build (BORE scheduler + sched-ext).
+# Replace the stock kernel with CachyOS's build (BORE scheduler).
 # Ostree images must contain exactly one kernel, so the stock one is removed
 # first, and the initramfs is generated explicitly because container builds
 # can skip it.
@@ -65,34 +65,21 @@ RUN dnf -y copr enable bieszczaders/kernel-cachyos-addons && \
     systemctl enable ananicy-cpp && \
     dnf clean all
 
-# Repo files mirror the root filesystem: notifier, Flathub setup, signing config
+# Repo files mirror the root filesystem: Flathub setup, signing config
 COPY files/ /
 COPY cosign.pub /etc/pki/containers/cobaltblue.pub
 
-RUN chmod +x /usr/bin/bootc-update-notify && \
-    systemctl --global enable bootc-notifier.timer && \
-    systemctl enable flathub-setup.service
-
-# Download and stage updates automatically in the background (no auto reboot);
-# the notifier then tells you when a reboot will apply them
-RUN sed -i 's/^#\?AutomaticUpdatePolicy=.*/AutomaticUpdatePolicy=stage/' /etc/rpm-ostreed.conf && \
-    grep -q '^AutomaticUpdatePolicy=stage' /etc/rpm-ostreed.conf && \
-    systemctl enable rpm-ostreed-automatic.timer
+RUN systemctl enable flathub-setup.service
 
 # Only accept cobaltblue images signed with this repo's cosign key
 RUN jq '.transports.docker["ghcr.io/vorpalmace/cobaltblue"] = [{"type": "sigstoreSigned", "keyPath": "/etc/pki/containers/cobaltblue.pub", "signedIdentity": {"type": "matchRepository"}}]' \
         /etc/containers/policy.json > /tmp/policy.json && \
     mv /tmp/policy.json /etc/containers/policy.json
 
-# Load ntsync at boot so newer Proton builds can use it for faster Windows sync
-RUN echo ntsync > /usr/lib/modules-load.d/ntsync.conf
-
 # Kernel arguments:
-# - amd_pstate=disable: the board's firmware lacks the CPPC support amd_pstate
-#   needs, so it only produced errors at boot; this silences it and keeps acpi-cpufreq
 # - amdgpu.ppfeaturemask: unlocks overclock/undervolt controls for LACT
 RUN mkdir -p /usr/lib/bootc/kargs.d && \
-    echo 'kargs = ["amd_pstate=disable", "amdgpu.ppfeaturemask=0xffffffff"]' \
+    echo 'kargs = ["amdgpu.ppfeaturemask=0xffffffff"]' \
         > /usr/lib/bootc/kargs.d/00-custom-hardware.toml
 
 # Fail the build early on problems like multiple kernels or a broken /usr layout

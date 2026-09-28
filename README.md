@@ -22,7 +22,7 @@ Fedora Silverblue and published as a signed bootable container image.
 - **CachyOS kernel** with the BORE scheduler, replacing Fedora's kernel
 - **cachyos-settings**: CachyOS zram, sysctl and udev defaults
 - **ananicy-cpp** with CachyOS rules: automatic priority for background tasks
-- **ntsync** loaded at boot for Proton
+- **ntsync** loaded at boot for Proton (via cachyos-settings)
 - `NetworkManager-wait-online` disabled for faster boot
 
 ### GPU and gaming
@@ -30,15 +30,13 @@ Fedora Silverblue and published as a signed bootable container image.
   with overdrive unlocked via `amdgpu.ppfeaturemask=0xffffffff`
 - **GameMode** daemon, usable from Flatpak Steam with `gamemoderun %command%`
 - `steam-devices` udev rules for controllers and VR hardware
-- `amd_pstate=disable`, since this board's firmware lacks the CPPC support it needs
 
 ### Tools
 - `fish`, `distrobox`, `fastfetch`, `htop`, `jq`
 
 ### Updates
-- Updates are downloaded and **staged automatically** in the background,
-  with no automatic reboot.
-- A desktop notification appears when a staged update is ready, once per update.
+- OS and Flatpak updates are handled by **GNOME Software**: it downloads them
+  in the background and notifies when a restart is needed.
 - Images are **signed with cosign**, and the system only accepts signed
   cobaltblue images.
 
@@ -71,16 +69,16 @@ instead of `:latest`, and rebase to the next release when ready.
 
 ```sh
 uname -r                  # contains "cachyos"
-cat /proc/cmdline         # contains amd_pstate=disable and amdgpu.ppfeaturemask
+cat /proc/cmdline         # contains amdgpu.ppfeaturemask=0xffffffff
 zramctl                   # zram swap active
 systemctl status ananicy-cpp lactd
 flatpak remotes           # only flathub
 ```
 
-If the kernel arguments are missing, add them once:
+If the kernel argument is missing, add it once:
 
 ```sh
-rpm-ostree kargs --append=amd_pstate=disable --append=amdgpu.ppfeaturemask=0xffffffff
+rpm-ostree kargs --append=amdgpu.ppfeaturemask=0xffffffff
 ```
 
 ## Building
@@ -91,4 +89,5 @@ repository secret (the contents of `cosign.key`) and `cosign.pub` committed in
 the repository root.
 
 Files under `files/` are copied into the image at the same path, e.g.
-`files/usr/bin/bootc-update-notify` becomes `/usr/bin/bootc-update-notify`.
+`files/usr/lib/systemd/system/flathub-setup.service` becomes
+`/usr/lib/systemd/system/flathub-setup.service`.
