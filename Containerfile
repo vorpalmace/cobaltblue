@@ -42,7 +42,7 @@ RUN dnf -y install dnf5-plugins && \
     systemctl disable NetworkManager-wait-online.service && \
     dnf clean all
 
-# Replace the stock kernel with CachyOS's build (BORE scheduler + sched-ext).
+# Replace the stock kernel with CachyOS's build (BORE scheduler).
 # Ostree images must contain exactly one kernel, so the stock one is removed
 # first, and the initramfs is generated explicitly because container builds
 # can skip it.
@@ -85,11 +85,9 @@ RUN jq '.transports.docker["ghcr.io/vorpalmace/cobaltblue"] = [{"type": "sigstor
     mv /tmp/policy.json /etc/containers/policy.json
 
 # Kernel arguments:
-# - amd_pstate=disable: the board's firmware lacks the CPPC support amd_pstate
-#   needs, so it only produced errors at boot; this silences it and keeps acpi-cpufreq
 # - amdgpu.ppfeaturemask: unlocks overclock/undervolt controls for LACT
 RUN mkdir -p /usr/lib/bootc/kargs.d && \
-    echo 'kargs = ["amd_pstate=disable", "amdgpu.ppfeaturemask=0xffffffff"]' \
+    echo 'kargs = ["amdgpu.ppfeaturemask=0xffffffff"]' \
         > /usr/lib/bootc/kargs.d/00-custom-hardware.toml
 
 # Fail the build early on problems like multiple kernels or a broken /usr layout
