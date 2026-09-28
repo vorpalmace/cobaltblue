@@ -35,9 +35,11 @@ RUN dnf -y install dnf5-plugins && \
         fastfetch \
         htop \
         jq \
+        gamemode \
         steam-devices \
         lact && \
     systemctl enable lactd && \
+    systemctl disable NetworkManager-wait-online.service && \
     dnf clean all
 
 # Replace the stock kernel with CachyOS's build (BORE scheduler + sched-ext).
@@ -49,7 +51,7 @@ RUN set -eux; \
     if [ -n "$OLD_PKGS" ]; then rpm --erase --nodeps $OLD_PKGS; fi; \
     rm -rf /usr/lib/modules/*; \
     dnf -y copr enable bieszczaders/kernel-cachyos; \
-    dnf -y install kernel-cachyos kernel-cachyos-devel-matched; \
+    dnf -y install kernel-cachyos; \
     test "$(ls /usr/lib/modules | wc -l)" -eq 1; \
     KVER="$(ls /usr/lib/modules)"; \
     dracut --no-hostonly --kver "$KVER" --reproducible --zstd -v --add ostree \
