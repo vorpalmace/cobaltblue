@@ -1,6 +1,5 @@
-# Universal Blue's Silverblue base: stock Silverblue plus RPM Fusion codecs,
-# hardware video decoding and common hardware support
-FROM ghcr.io/ublue-os/silverblue-main:44
+# Stock Fedora Silverblue bootable container base
+FROM quay.io/fedora-ostree-desktops/silverblue:44
 
 # Remove the Firefox RPM and Fedora's Flatpak remotes; Flathub is the only app source.
 # A bundled copy of the Flathub remote file lets first boot add it without network.
@@ -10,6 +9,19 @@ RUN dnf -y remove firefox firefox-langpacks || true && \
     mkdir -p /usr/share/cobaltblue && \
     curl -fsSLo /usr/share/cobaltblue/flathub.flatpakrepo \
         https://dl.flathub.org/repo/flathub.flatpakrepo
+
+# RPM Fusion: full ffmpeg and patent-encumbered codecs, plus AMD hardware
+# video decoding (H.264/HEVC) via the freeworld VA-API driver.
+# --allowerasing replaces Fedora's stripped-down ffmpeg-free and mesa-va-drivers.
+RUN dnf -y install \
+        "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm" \
+        "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm" && \
+    dnf -y install --allowerasing \
+        ffmpeg \
+        mesa-va-drivers-freeworld \
+        gstreamer1-plugins-bad-freeworld \
+        gstreamer1-plugins-ugly && \
+    dnf clean all
 
 # Base packages, plus LACT (AMD GPU control) from COPR
 RUN dnf -y install dnf5-plugins && \
@@ -66,6 +78,9 @@ RUN sed -i 's/^#\?AutomaticUpdatePolicy=.*/AutomaticUpdatePolicy=stage/' /etc/rp
 RUN jq '.transports.docker["ghcr.io/vorpalmace/cobaltblue"] = [{"type": "sigstoreSigned", "keyPath": "/etc/pki/containers/cobaltblue.pub", "signedIdentity": {"type": "matchRepository"}}]' \
         /etc/containers/policy.json > /tmp/policy.json && \
     mv /tmp/policy.json /etc/containers/policy.json
+
+# Load ntsync at boot so newer Proton builds can use it for faster Windows sync
+RUN echo ntsync > /usr/lib/modules-load.d/ntsync.conf
 
 # Kernel arguments:
 # - amd_pstate=disable: the board's firmware lacks the CPPC support amd_pstate
