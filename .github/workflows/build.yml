@@ -12,7 +12,6 @@ on:
 
 env:
   IMAGE: ghcr.io/${{ github.repository_owner }}/cobaltblue
-  FEDORA_VERSION: "44"
 
 jobs:
   build:
@@ -26,8 +25,21 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Compute date tag
-        run: echo "DATE_TAG=${FEDORA_VERSION}-$(date -u +%Y%m%d)" >> "$GITHUB_ENV"
+      # Ask Fedora's update system (Bodhi) for the currently supported releases
+      # and take the highest one. Only released versions are "current", so
+      # betas and Rawhide are never picked.
+      - name: Detect current stable Fedora release
+        run: |
+          FEDORA_VERSION="$(curl -fsSL 'https://bodhi.fedoraproject.org/releases/?state=current&rows_per_page=100' \
+            | jq -r '.releases[] | select(.id_prefix == "FEDORA") | .version' \
+            | grep -E '^[0-9]+$' | sort -n | tail -n1)"
+          if ! [[ "$FEDORA_VERSION" =~ ^[0-9]+$ ]]; then
+            echo "Could not detect the Fedora release" >&2
+            exit 1
+          fi
+          echo "Building on Fedora $FEDORA_VERSION"
+          echo "FEDORA_VERSION=$FEDORA_VERSION" >> "$GITHUB_ENV"
+          echo "DATE_TAG=$FEDORA_VERSION-$(date -u +%Y%m%d)" >> "$GITHUB_ENV"
 
       - name: Log in to GitHub Container Registry
         uses: redhat-actions/podman-login@v1
@@ -43,6 +55,7 @@ jobs:
         run: |
           sudo --preserve-env=REGISTRY_AUTH_FILE buildah bud \
             --authfile "$REGISTRY_AUTH_FILE" \
+            --build-arg FEDORA_VERSION="$FEDORA_VERSION" \
             --tag "$IMAGE:latest" \
             --tag "$IMAGE:$FEDORA_VERSION" \
             --tag "$IMAGE:$DATE_TAG" \

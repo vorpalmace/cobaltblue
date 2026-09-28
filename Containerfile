@@ -1,5 +1,8 @@
-# Stock Fedora Silverblue bootable container base
-FROM quay.io/fedora-ostree-desktops/silverblue:44
+# Stock Fedora Silverblue bootable container base.
+# The workflow passes the current stable Fedora release; 44 is the fallback
+# for local builds without --build-arg.
+ARG FEDORA_VERSION=44
+FROM quay.io/fedora-ostree-desktops/silverblue:${FEDORA_VERSION}
 
 # Remove the Firefox RPM and Fedora's Flatpak remotes; Flathub is the only app source.
 # A bundled copy of the Flathub remote file lets first boot add it without network.
