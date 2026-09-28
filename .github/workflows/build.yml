@@ -1,26 +1,33 @@
-name: Build and Push Custom Silverblue
+name: Build, Push and Sign cobaltblue
 
 on:
   push:
     branches:
       - main
-  # Automatically build every day at 04:00 UTC to pull latest Fedora updates
+  # Build every day at 04:00 UTC to pull the latest Fedora updates
   schedule:
     - cron: '0 4 * * *'
-  # Allows triggering builds manually from the GitHub Actions tab
+  # Allows triggering builds manually from the Actions tab
   workflow_dispatch:
+
+env:
+  IMAGE: ghcr.io/${{ github.repository_owner }}/cobaltblue
+  FEDORA_VERSION: "44"
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     permissions:
       contents: read
       packages: write
-      
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      - name: Compute date tag
+        run: echo "DATE_TAG=${FEDORA_VERSION}-$(date -u +%Y%m%d)" >> "$GITHUB_ENV"
 
       - name: Log in to GitHub Container Registry
         uses: redhat-actions/podman-login@v1
@@ -29,21 +36,37 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Running with sudo bypasses all user namespace / cgroup 125 crashes.
+      # Running with sudo bypasses user namespace / cgroup 125 crashes.
       # sudo strips the environment by default, so REGISTRY_AUTH_FILE (set by
-      # podman-login) would otherwise be invisible to root and the push
-      # would fail auth even though the login step "succeeded".
-      - name: Build Image (Verbose & Root)
+      # podman-login) has to be preserved explicitly or the push fails auth.
+      - name: Build Image
         run: |
           sudo --preserve-env=REGISTRY_AUTH_FILE buildah bud \
-            --debug \
-            --loglevel 5 \
             --authfile "$REGISTRY_AUTH_FILE" \
-            --tag ghcr.io/${{ github.repository_owner }}/cobaltblue:latest \
+            --tag "$IMAGE:latest" \
+            --tag "$IMAGE:$FEDORA_VERSION" \
+            --tag "$IMAGE:$DATE_TAG" \
             --file ./Containerfile .
 
+      # All tags point to the same image, so they share one digest
       - name: Push Image
         run: |
-          sudo --preserve-env=REGISTRY_AUTH_FILE podman push \
-            --authfile "$REGISTRY_AUTH_FILE" \
-            ghcr.io/${{ github.repository_owner }}/cobaltblue:latest
+          for tag in latest "$FEDORA_VERSION" "$DATE_TAG"; do
+            sudo --preserve-env=REGISTRY_AUTH_FILE podman push \
+              --authfile "$REGISTRY_AUTH_FILE" \
+              --digestfile /tmp/digest \
+              "$IMAGE:$tag"
+          done
+          echo "DIGEST=$(cat /tmp/digest)" >> "$GITHUB_ENV"
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
+      # Signing the digest covers every tag of this build
+      - name: Sign Image
+        env:
+          COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+        run: |
+          cosign login ghcr.io -u "${{ github.actor }}" -p "${{ secrets.GITHUB_TOKEN }}"
+          cosign sign -y --key env://COSIGN_PRIVATE_KEY "$IMAGE@$DIGEST"

@@ -1,5 +1,5 @@
 [Unit]
-Description=Check for staged bootc OS updates hourly
+Description=Check for staged OS updates hourly
 
 [Timer]
 OnBootSec=5min

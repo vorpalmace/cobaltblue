@@ -1,0 +1,21 @@
+#!/usr/bin/bash
+# Notify the user once per staged OS update.
+# rpm-ostree status works unprivileged over D-Bus; bootc status needs root.
+set -euo pipefail
+
+staged="$(rpm-ostree status --json \
+    | jq -r '.deployments[] | select(.staged == true) | .checksum' \
+    | head -n1)"
+
+[ -z "$staged" ] && exit 0
+
+# The runtime dir is cleared on reboot, so this suppresses repeats until then
+marker="${XDG_RUNTIME_DIR:-/tmp}/cobaltblue-notified-${staged}"
+[ -e "$marker" ] && exit 0
+
+notify-send \
+    --icon="software-update-available" \
+    --urgency=normal \
+    "System Update Ready" \
+    "A new cobaltblue image has been staged. Reboot to apply it." \
+    && touch "$marker"

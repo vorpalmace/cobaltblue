@@ -1,0 +1,14 @@
+[Unit]
+Description=Ensure Flathub is the only system Flatpak remote
+ConditionPathExists=/usr/share/cobaltblue/flathub.flatpakrepo
+
+[Service]
+Type=oneshot
+# Remove Fedora's remotes if an earlier install added them ("-" ignores failure)
+ExecStart=-/usr/bin/flatpak remote-delete --system --force fedora
+ExecStart=-/usr/bin/flatpak remote-delete --system --force fedora-testing
+ExecStart=/usr/bin/flatpak remote-add --system --if-not-exists flathub /usr/share/cobaltblue/flathub.flatpakrepo
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

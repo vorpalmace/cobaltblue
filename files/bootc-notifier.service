@@ -1,0 +1,6 @@
+[Unit]
+Description=Notify user of staged OS updates
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/bootc-update-notify

@@ -1,0 +1,3 @@
+docker:
+  ghcr.io/vorpalmace/cobaltblue:
+    use-sigstore-attachments: true
