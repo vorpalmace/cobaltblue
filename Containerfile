@@ -58,11 +58,12 @@ RUN set -eux; \
         -f "/usr/lib/modules/$KVER/initramfs.img"; \
     dnf clean all
 
-# CachyOS tuning: zram/sysctl/udev defaults + auto-nice background scheduling
+# CachyOS tuning: zram/sysctl/udev defaults
+# ananicy-cpp is disabled: it fights GameMode over process priorities.
 RUN dnf -y copr enable bieszczaders/kernel-cachyos-addons && \
     dnf -y swap zram-generator-defaults cachyos-settings && \
-    dnf -y install ananicy-cpp cachyos-ananicy-rules && \
-    systemctl enable ananicy-cpp && \
+    # dnf -y install ananicy-cpp cachyos-ananicy-rules && \
+    # systemctl enable ananicy-cpp && \
     dnf clean all
 
 # Repo files mirror the root filesystem: Flathub setup, signing config

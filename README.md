@@ -21,7 +21,6 @@ Fedora Silverblue and published as a signed bootable container image.
 ### Kernel and system tuning
 - **CachyOS kernel** with the BORE scheduler, replacing Fedora's kernel
 - **cachyos-settings**: CachyOS zram, sysctl and udev defaults
-- **ananicy-cpp** with CachyOS rules: automatic priority for background tasks
 - **ntsync** loaded at boot for Proton (via cachyos-settings)
 - `NetworkManager-wait-online` disabled for faster boot
 
@@ -71,7 +70,7 @@ instead of `:latest`, and rebase to the next release when ready.
 uname -r                  # contains "cachyos"
 cat /proc/cmdline         # contains amdgpu.ppfeaturemask=0xffffffff
 zramctl                   # zram swap active
-systemctl status ananicy-cpp lactd
+systemctl status lactd
 flatpak remotes           # only flathub
 ```
 
