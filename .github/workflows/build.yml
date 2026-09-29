@@ -72,8 +72,12 @@ jobs:
           done
           echo "DIGEST=$(cat /tmp/digest)" >> "$GITHUB_ENV"
 
+      # Pinned to cosign 2.x: cosign 3 defaults to the new bundle format,
+      # which rpm-ostree's use-sigstore-attachments lookup can't find
       - name: Install cosign
         uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: 'v2.6.5'
 
       # Signing the digest covers every tag of this build
       - name: Sign Image
