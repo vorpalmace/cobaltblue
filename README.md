@@ -73,8 +73,29 @@ rpm-ostree kargs --append=amdgpu.ppfeaturemask=0xffffffff
 ## Building
 
 `.github/workflows/build.yml` builds on every push to `main`, daily at
-04:00 UTC, and on manual trigger. Signing needs `cosign.pub` in the repository
-root and two repository secrets: `SIGNING_SECRET` (the contents of `cosign.key`)
-and `COSIGN_PASSWORD`.
+04:00 UTC, and on manual trigger.
 
 Files under `files/` are copied into the image at the same path.
+
+## Signing
+
+Create a key pair:
+
+```sh
+cosign generate-key-pair
+```
+
+Commit `cosign.pub` and keep `cosign.key` out of the repository. Add two
+repository secrets: `SIGNING_SECRET` (the contents of `cosign.key`) and
+`COSIGN_PASSWORD` (its password).
+
+The image installs the public key as `/etc/pki/containers/cobaltblue.pub`, and
+`/etc/containers/policy.json` only accepts cobaltblue images signed with it.
+After a key change, installed systems reject new images until they rebase
+unverified once more.
+
+Verify an image:
+
+```sh
+cosign verify --key cosign.pub ghcr.io/vorpalmace/cobaltblue:latest
+```
