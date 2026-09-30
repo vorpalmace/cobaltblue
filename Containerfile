@@ -43,8 +43,11 @@ COPY cosign.pub /etc/pki/containers/cobaltblue.pub
 
 RUN systemctl enable flathub-setup.service
 
-# Only accept images signed with our cosign key
-RUN jq '.transports.docker["ghcr.io/vorpalmace/cobaltblue"] = [{"type": "sigstoreSigned", "keyPath": "/etc/pki/containers/cobaltblue.pub", "signedIdentity": {"type": "matchRepository"}}]' \
+# Signed cobaltblue only; rpm-ostree needs a reject default, so allow others per transport
+RUN jq '.default = [{"type": "reject"}] \
+        | reduce ("docker", "docker-archive", "docker-daemon", "oci", "oci-archive", "dir", "containers-storage") as $t \
+            (.; .transports[$t][""] //= [{"type": "insecureAcceptAnything"}]) \
+        | .transports.docker["ghcr.io/vorpalmace/cobaltblue"] = [{"type": "sigstoreSigned", "keyPath": "/etc/pki/containers/cobaltblue.pub", "signedIdentity": {"type": "matchRepository"}}]' \
         /etc/containers/policy.json > /tmp/policy.json && \
     mv /tmp/policy.json /etc/containers/policy.json
 
