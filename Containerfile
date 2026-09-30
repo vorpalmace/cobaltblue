@@ -30,6 +30,7 @@ RUN dnf -y install dnf5-plugins && \
         fastfetch \
         htop \
         micro \
+        vim-enhanced \
         jq \
         gamemode \
         steam-devices \

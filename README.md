@@ -25,7 +25,7 @@ Built daily and published as a signed bootable container image.
 - `steam-devices` udev rules for controllers and VR
 
 ### Tools
-- `fish`, `distrobox`, `fastfetch`, `htop`, `jq`, and `micro`
+- `fish`, `distrobox`, `fastfetch`, `htop`, `jq`, `micro`, and `vim`
 
 ### Updates
 - OS updates are staged in the background and applied on reboot
