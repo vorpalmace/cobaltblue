@@ -25,7 +25,7 @@ Built daily and published as a signed bootable container image.
 - `steam-devices` udev rules for controllers and VR
 
 ### Tools
-- `fish`, `distrobox`, `fastfetch`, `htop`, and `jq`
+- `fish`, `distrobox`, `fastfetch`, `htop`, `jq`, and `micro`
 
 ### Updates
 - GNOME Software handles OS and Flatpak updates

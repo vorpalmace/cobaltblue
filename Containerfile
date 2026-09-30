@@ -29,6 +29,7 @@ RUN dnf -y install dnf5-plugins && \
         distrobox \
         fastfetch \
         htop \
+        micro \
         jq \
         gamemode \
         steam-devices \
