@@ -42,7 +42,7 @@ RUN dnf -y install dnf5-plugins && \
 COPY files/ /
 COPY cosign.pub /etc/pki/containers/cobaltblue.pub
 
-RUN systemctl enable flathub-setup.service
+RUN systemctl enable flathub-setup.service rpm-ostreed-automatic.timer
 
 # Signed cobaltblue only; rpm-ostree needs a reject default, so allow others per transport
 RUN jq '.default = [{"type": "reject"}] \

@@ -28,7 +28,8 @@ Built daily and published as a signed bootable container image.
 - `fish`, `distrobox`, `fastfetch`, `htop`, `jq`, and `micro`
 
 ### Updates
-- GNOME Software handles OS and Flatpak updates
+- OS updates are staged in the background and applied on reboot
+- GNOME Software handles Flatpak updates
 - Only cosign-signed cobaltblue images are accepted
 
 ## Tags
@@ -60,7 +61,7 @@ Use a release tag such as `:44` to control major upgrades manually.
 ```sh
 rpm-ostree status         # origin starts with ostree-image-signed:
 cat /proc/cmdline         # contains amdgpu.ppfeaturemask=0xffffffff
-systemctl status lactd
+systemctl status lactd rpm-ostreed-automatic.timer
 flatpak remotes           # only flathub
 ```
 
