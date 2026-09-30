@@ -16,7 +16,6 @@ Built daily and published as a signed bootable container image.
 - GStreamer `bad-freeworld` and `ugly` plugins
 
 ### System
-- `ntsync` loaded at boot for Proton
 - `NetworkManager-wait-online` disabled
 
 ### Gaming
@@ -61,7 +60,6 @@ Use a release tag such as `:44` to control major upgrades manually.
 ```sh
 rpm-ostree status         # origin starts with ostree-image-signed:
 cat /proc/cmdline         # contains amdgpu.ppfeaturemask=0xffffffff
-lsmod | grep ntsync       # ntsync loaded
 systemctl status lactd
 flatpak remotes           # only flathub
 ```
