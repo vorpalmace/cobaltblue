@@ -1,6 +1,6 @@
 # cobaltblue
 
-Custom Fedora Silverblue image for gaming and everyday use.
+Custom Fedora Silverblue image for gaming, development, and everyday use.
 Built daily and published as a signed bootable container image.
 
 ## Features
