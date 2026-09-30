@@ -18,10 +18,8 @@ Fedora Silverblue and published as a signed bootable container image.
 - `mesa-va-drivers-freeworld`: H.264 / HEVC hardware video decoding on AMD
 - GStreamer `bad-freeworld` and `ugly` plugins for GNOME apps
 
-### Kernel and system tuning
-- **CachyOS kernel** with the BORE scheduler, replacing Fedora's kernel
-- **cachyos-settings**: CachyOS zram, sysctl and udev defaults
-- **ntsync** loaded at boot for Proton (via cachyos-settings)
+### System tuning
+- **ntsync** loaded at boot for Proton
 - `NetworkManager-wait-online` disabled for faster boot
 
 ### GPU and gaming
@@ -67,9 +65,10 @@ instead of `:latest`, and rebase to the next release when ready.
 ## After the first boot
 
 ```sh
-uname -r                  # contains "cachyos"
+rpm-ostree status         # origin starts with ostree-image-signed:
 cat /proc/cmdline         # contains amdgpu.ppfeaturemask=0xffffffff
-zramctl                   # zram swap active
+zramctl                   # zram swap active (Fedora default)
+lsmod | grep ntsync       # ntsync loaded
 systemctl status lactd
 flatpak remotes           # only flathub
 ```

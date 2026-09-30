@@ -42,31 +42,7 @@ RUN dnf -y install dnf5-plugins && \
     systemctl disable NetworkManager-wait-online.service && \
     dnf clean all
 
-# Replace the stock kernel with CachyOS's build (BORE scheduler).
-# Ostree images must contain exactly one kernel, so the stock one is removed
-# first, and the initramfs is generated explicitly because container builds
-# can skip it.
-RUN set -eux; \
-    OLD_PKGS="$(rpm -qa --qf '%{NAME}\n' 'kernel' 'kernel-core' 'kernel-modules*' 'kernel-uki-virt*' || true)"; \
-    if [ -n "$OLD_PKGS" ]; then rpm --erase --nodeps $OLD_PKGS; fi; \
-    rm -rf /usr/lib/modules/*; \
-    dnf -y copr enable bieszczaders/kernel-cachyos; \
-    dnf -y install kernel-cachyos; \
-    test "$(ls /usr/lib/modules | wc -l)" -eq 1; \
-    KVER="$(ls /usr/lib/modules)"; \
-    dracut --no-hostonly --kver "$KVER" --reproducible --zstd -v --add ostree \
-        -f "/usr/lib/modules/$KVER/initramfs.img"; \
-    dnf clean all
-
-# CachyOS tuning: zram/sysctl/udev defaults
-# ananicy-cpp is disabled: it fights GameMode over process priorities.
-RUN dnf -y copr enable bieszczaders/kernel-cachyos-addons && \
-    dnf -y swap zram-generator-defaults cachyos-settings && \
-    # dnf -y install ananicy-cpp cachyos-ananicy-rules && \
-    # systemctl enable ananicy-cpp && \
-    dnf clean all
-
-# Repo files mirror the root filesystem: Flathub setup, signing config
+# Repo files mirror the root filesystem: Flathub setup, ntsync, signing config
 COPY files/ /
 COPY cosign.pub /etc/pki/containers/cobaltblue.pub
 
