@@ -1,79 +1,72 @@
 # cobaltblue
 
-A custom Fedora Silverblue image for my desktop: gaming on AMD, Rust
-development and everyday use. Built daily on GitHub Actions from stock
-Fedora Silverblue and published as a signed bootable container image.
+Custom Fedora Silverblue image for gaming and everyday use.
+Built daily and published as a signed bootable container image.
 
 ## Features
 
 ### Base
-- Stock **Fedora Silverblue** (GNOME), always on the **current stable Fedora
-  release**, detected automatically at build time. Betas are never used.
-- The Firefox RPM is removed. Apps come from Flatpak.
-- **Flathub is the only Flatpak remote.** Fedora's remotes are removed and a
-  boot service makes sure Flathub is configured.
+- Stock Fedora Silverblue on the current stable release, detected at build time
+- Firefox RPM removed
+- Flathub as the only Flatpak remote
 
 ### Codecs (RPM Fusion)
-- Full `ffmpeg` in place of Fedora's `ffmpeg-free`
-- `mesa-va-drivers-freeworld`: H.264 / HEVC hardware video decoding on AMD
-- GStreamer `bad-freeworld` and `ugly` plugins for GNOME apps
+- Full `ffmpeg` instead of `ffmpeg-free`
+- `mesa-va-drivers-freeworld` for H.264/HEVC hardware decoding
+- GStreamer `bad-freeworld` and `ugly` plugins
 
-### System tuning
-- **ntsync** loaded at boot for Proton
-- `NetworkManager-wait-online` disabled for faster boot
+### System
+- `ntsync` loaded at boot for Proton
+- `NetworkManager-wait-online` disabled
 
-### GPU and gaming
-- **LACT** for AMD GPU control (clocks, undervolt, power limit, fan curve),
-  with overdrive unlocked via `amdgpu.ppfeaturemask=0xffffffff`
-- **GameMode** daemon, usable from Flatpak Steam with `gamemoderun %command%`
-- `steam-devices` udev rules for controllers and VR hardware
+### Gaming
+- LACT for GPU clocks, undervolting, power limit, and fan curve, with overdrive
+  unlocked via `amdgpu.ppfeaturemask=0xffffffff`
+- GameMode, usable from Flatpak Steam with `gamemoderun %command%`
+- `steam-devices` udev rules for controllers and VR
 
 ### Tools
-- `fish`, `distrobox`, `fastfetch`, `htop`, `jq`
+- `fish`, `distrobox`, `fastfetch`, `htop`, and `jq`
 
 ### Updates
-- OS and Flatpak updates are handled by **GNOME Software**: it downloads them
-  in the background and notifies when a restart is needed.
-- Images are **signed with cosign**, and the system only accepts signed
-  cobaltblue images.
+- GNOME Software handles OS and Flatpak updates
+- Only cosign-signed cobaltblue images are accepted
 
 ## Tags
 
 | Tag | Meaning |
 | --- | --- |
-| `latest` | Newest build, follows new Fedora releases automatically |
-| `<fedora>` (e.g. `44`) | Newest build for that Fedora release |
-| `<fedora>-<date>` (e.g. `44-20260928`) | A specific daily build, for rollbacks |
+| `latest` | Newest build, follows Fedora releases |
+| `<fedora>` (e.g. `44`) | Newest build for that release |
+| `<fedora>-<date>` (e.g. `44-20260928`) | A specific build, for rollbacks |
 
 ## Installation
 
-From an existing Fedora Silverblue install:
+From Fedora Silverblue:
 
 ```sh
-# 1. Switch to the image (unverified, to get the signing key onto the system)
+# 1. Unverified rebase, to install the signing key
 rpm-ostree rebase ostree-unverified-registry:ghcr.io/vorpalmace/cobaltblue:latest
 systemctl reboot
 
-# 2. Switch to signature-verified updates
+# 2. Switch to signed updates
 rpm-ostree rebase ostree-image-signed:docker://ghcr.io/vorpalmace/cobaltblue:latest
 systemctl reboot
 ```
 
-To control Fedora major upgrades manually, use a release tag such as `:44`
-instead of `:latest`, and rebase to the next release when ready.
+Use a release tag such as `:44` to control major upgrades manually.
 
 ## After the first boot
 
 ```sh
 rpm-ostree status         # origin starts with ostree-image-signed:
 cat /proc/cmdline         # contains amdgpu.ppfeaturemask=0xffffffff
-zramctl                   # zram swap active (Fedora default)
 lsmod | grep ntsync       # ntsync loaded
 systemctl status lactd
 flatpak remotes           # only flathub
 ```
 
-If the kernel argument is missing, add it once:
+If the kernel argument is missing:
 
 ```sh
 rpm-ostree kargs --append=amdgpu.ppfeaturemask=0xffffffff
@@ -81,11 +74,9 @@ rpm-ostree kargs --append=amdgpu.ppfeaturemask=0xffffffff
 
 ## Building
 
-The image is built by `.github/workflows/build.yml` on every push to `main`,
-daily at 04:00 UTC and on manual trigger. Signing requires the `SIGNING_SECRET`
-repository secret (the contents of `cosign.key`) and `cosign.pub` committed in
-the repository root.
+`.github/workflows/build.yml` builds on every push to `main`, daily at
+04:00 UTC, and on manual trigger. Signing needs `cosign.pub` in the repository
+root and two repository secrets: `SIGNING_SECRET` (the contents of `cosign.key`)
+and `COSIGN_PASSWORD`.
 
-Files under `files/` are copied into the image at the same path, e.g.
-`files/usr/lib/systemd/system/flathub-setup.service` becomes
-`/usr/lib/systemd/system/flathub-setup.service`.
+Files under `files/` are copied into the image at the same path.
