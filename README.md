@@ -82,12 +82,11 @@ Files under `files/` are copied into the image at the same path.
 Create a key pair:
 
 ```sh
-cosign generate-key-pair
+cosign generate-key-pair   # leave the password empty
 ```
 
-Commit `cosign.pub` and keep `cosign.key` out of the repository. Add two
-repository secrets: `SIGNING_SECRET` (the contents of `cosign.key`) and
-`COSIGN_PASSWORD` (its password).
+Commit `cosign.pub`, keep `cosign.key` out of the repository, and add its
+contents as the `SIGNING_SECRET` repository secret.
 
 The image installs the public key as `/etc/pki/containers/cobaltblue.pub`, and
 `/etc/containers/policy.json` only accepts cobaltblue images signed with it.
