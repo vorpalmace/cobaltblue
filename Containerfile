@@ -1,11 +1,8 @@
-# Stock Fedora Silverblue bootable container base.
-# The workflow passes the current stable Fedora release; 44 is the fallback
-# for local builds without --build-arg.
+# Workflow passes the current release; 44 is the local-build fallback
 ARG FEDORA_VERSION=44
 FROM quay.io/fedora-ostree-desktops/silverblue:${FEDORA_VERSION}
 
-# Remove the Firefox RPM and Fedora's Flatpak remotes; Flathub is the only app source.
-# A bundled copy of the Flathub remote file lets first boot add it without network.
+# Flathub only: drop Firefox RPM and Fedora remotes, bundle Flathub's repo file
 RUN dnf -y remove firefox firefox-langpacks || true && \
     rm -f /etc/flatpak/remotes.d/fedora*.flatpakrepo \
           /usr/share/flatpak/remotes.d/fedora*.flatpakrepo && \
@@ -13,9 +10,7 @@ RUN dnf -y remove firefox firefox-langpacks || true && \
     curl -fsSLo /usr/share/cobaltblue/flathub.flatpakrepo \
         https://dl.flathub.org/repo/flathub.flatpakrepo
 
-# RPM Fusion: full ffmpeg and patent-encumbered codecs, plus AMD hardware
-# video decoding (H.264/HEVC) via the freeworld VA-API driver.
-# --allowerasing replaces Fedora's stripped-down ffmpeg-free and mesa-va-drivers.
+# RPM Fusion codecs and AMD VA-API; --allowerasing replaces Fedora's -free builds
 RUN dnf -y install \
         "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm" \
         "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm" && \
@@ -26,7 +21,7 @@ RUN dnf -y install \
         gstreamer1-plugins-ugly && \
     dnf clean all
 
-# Base packages, plus LACT (AMD GPU control) from COPR
+# Base packages; LACT from COPR
 RUN dnf -y install dnf5-plugins && \
     dnf -y copr enable ilyaz/LACT && \
     dnf -y install \
@@ -42,22 +37,21 @@ RUN dnf -y install dnf5-plugins && \
     systemctl disable NetworkManager-wait-online.service && \
     dnf clean all
 
-# Repo files mirror the root filesystem: Flathub setup, ntsync, signing config
+# files/ mirrors the root filesystem
 COPY files/ /
 COPY cosign.pub /etc/pki/containers/cobaltblue.pub
 
 RUN systemctl enable flathub-setup.service
 
-# Only accept cobaltblue images signed with this repo's cosign key
+# Only accept images signed with our cosign key
 RUN jq '.transports.docker["ghcr.io/vorpalmace/cobaltblue"] = [{"type": "sigstoreSigned", "keyPath": "/etc/pki/containers/cobaltblue.pub", "signedIdentity": {"type": "matchRepository"}}]' \
         /etc/containers/policy.json > /tmp/policy.json && \
     mv /tmp/policy.json /etc/containers/policy.json
 
-# Kernel arguments:
-# - amdgpu.ppfeaturemask: unlocks overclock/undervolt controls for LACT
+# Unlock LACT overclock/undervolt controls
 RUN mkdir -p /usr/lib/bootc/kargs.d && \
     echo 'kargs = ["amdgpu.ppfeaturemask=0xffffffff"]' \
         > /usr/lib/bootc/kargs.d/00-custom-hardware.toml
 
-# Fail the build early on problems like multiple kernels or a broken /usr layout
+# Catch multiple kernels, broken /usr layout, etc.
 RUN bootc container lint

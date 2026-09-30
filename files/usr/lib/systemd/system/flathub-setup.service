@@ -4,7 +4,7 @@ ConditionPathExists=/usr/share/cobaltblue/flathub.flatpakrepo
 
 [Service]
 Type=oneshot
-# Remove Fedora's remotes if an earlier install added them ("-" ignores failure)
+# Drop Fedora remotes if present ("-" ignores failure)
 ExecStart=-/usr/bin/flatpak remote-delete --system --force fedora
 ExecStart=-/usr/bin/flatpak remote-delete --system --force fedora-testing
 ExecStart=/usr/bin/flatpak remote-add --system --if-not-exists flathub /usr/share/cobaltblue/flathub.flatpakrepo

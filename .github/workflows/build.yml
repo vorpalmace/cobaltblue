@@ -4,10 +4,9 @@ on:
   push:
     branches:
       - main
-  # Build every day at 04:00 UTC to pull the latest Fedora updates
+  # Daily rebuild for Fedora updates
   schedule:
     - cron: '0 4 * * *'
-  # Allows triggering builds manually from the Actions tab
   workflow_dispatch:
 
 env:
@@ -25,9 +24,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # Ask Fedora's update system (Bodhi) for the currently supported releases
-      # and take the highest one. Only released versions are "current", so
-      # betas and Rawhide are never picked.
+      # Highest "current" release from Bodhi (never betas or Rawhide)
       - name: Detect current stable Fedora release
         run: |
           FEDORA_VERSION="$(curl -fsSL 'https://bodhi.fedoraproject.org/releases/?state=current&rows_per_page=100' \
@@ -48,9 +45,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Running with sudo bypasses user namespace / cgroup 125 crashes.
-      # sudo strips the environment by default, so REGISTRY_AUTH_FILE (set by
-      # podman-login) has to be preserved explicitly or the push fails auth.
+      # sudo avoids rootless cgroup crashes; keep REGISTRY_AUTH_FILE for push auth
       - name: Build Image
         run: |
           sudo --preserve-env=REGISTRY_AUTH_FILE buildah bud \
@@ -61,7 +56,7 @@ jobs:
             --tag "$IMAGE:$DATE_TAG" \
             --file ./Containerfile .
 
-      # All tags point to the same image, so they share one digest
+      # All tags share one digest
       - name: Push Image
         run: |
           for tag in latest "$FEDORA_VERSION" "$DATE_TAG"; do
@@ -72,14 +67,13 @@ jobs:
           done
           echo "DIGEST=$(cat /tmp/digest)" >> "$GITHUB_ENV"
 
-      # Pinned to cosign 2.x: cosign 3 defaults to the new bundle format,
-      # which rpm-ostree's use-sigstore-attachments lookup can't find
+      # cosign 3's bundle format isn't found by rpm-ostree; stay on 2.x
       - name: Install cosign
         uses: sigstore/cosign-installer@v3
         with:
           cosign-release: 'v2.6.5'
 
-      # Signing the digest covers every tag of this build
+      # Signing the digest covers all tags
       - name: Sign Image
         env:
           COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
