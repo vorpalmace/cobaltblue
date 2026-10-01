@@ -8,6 +8,7 @@ Built daily and published as a signed bootable container image.
 ### Base
 - Stock Fedora Silverblue on the current stable release, detected at build time
 - Firefox RPM removed
+- Bazaar instead of GNOME Software, installed from Flathub on first boot
 - Flathub as the only Flatpak remote
 
 ### Codecs (RPM Fusion)
@@ -28,8 +29,9 @@ Built daily and published as a signed bootable container image.
 - `fish`, `distrobox`, `fastfetch`, `htop`, `jq`, `micro`, and `vim`
 
 ### Updates
-- OS updates are staged in the background and applied on reboot
-- GNOME Software handles Flatpak updates
+- Daily automatic updates on unmetered connections, following Universal Blue:
+  OS updates are staged and applied on reboot, Flatpaks update in place
+- Firmware updates are manual: `fwupdmgr update`
 - Only cosign-signed cobaltblue images are accepted
 
 ## Tags
@@ -61,7 +63,8 @@ Use a release tag such as `:44` to control major upgrades manually.
 ```sh
 rpm-ostree status         # origin starts with ostree-image-signed:
 cat /proc/cmdline         # contains amdgpu.ppfeaturemask=0xffffffff
-systemctl status lactd rpm-ostreed-automatic.timer
+systemctl status lactd rpm-ostreed-automatic.timer flatpak-system-update.timer
+systemctl --user status flatpak-user-update.timer
 flatpak remotes           # only flathub
 ```
 

@@ -1,0 +1,15 @@
+[Unit]
+Description=Install Bazaar from Flathub
+ConditionPathExists=!/var/lib/flatpak/app/io.github.kolunmi.Bazaar
+Wants=network-online.target
+After=network-online.target flathub-setup.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/flatpak install --system --noninteractive -y flathub io.github.kolunmi.Bazaar
+# Retry until the network is up
+Restart=on-failure
+RestartSec=1min
+
+[Install]
+WantedBy=multi-user.target
