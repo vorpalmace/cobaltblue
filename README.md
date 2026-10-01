@@ -8,7 +8,9 @@ Built daily and published as a signed bootable container image.
 ### Base
 - Stock Fedora Silverblue on the current stable release, detected at build time
 - Firefox RPM removed
-- Bazaar instead of GNOME Software, installed from Flathub on first boot
+- Bazaar instead of GNOME Software
+- Installed from Flathub on first boot: Bazaar, Zen Browser, Steam, ONLYOFFICE,
+  Obsidian, Fragments, and Celluloid
 - Flathub as the only Flatpak remote
 
 ### Codecs (RPM Fusion)
@@ -27,6 +29,7 @@ Built daily and published as a signed bootable container image.
 
 ### Tools
 - `fish`, `distrobox`, `fastfetch`, `htop`, `jq`, and `micro`
+- fish as the default shell for new users
 
 ### Updates
 - Daily automatic updates on unmetered connections, following Universal Blue:
@@ -40,7 +43,7 @@ Built daily and published as a signed bootable container image.
 | --- | --- |
 | `latest` | Newest build, follows Fedora releases |
 | `<fedora>` (e.g. `44`) | Newest build for that release |
-| `<fedora>-<date>` (e.g. `44-20260928`) | A specific build, for rollbacks |
+| `<fedora>-<date>` (e.g. `44-20260928`) | A specific build, for rollbacks (last two weeks) |
 
 ## Installation
 
@@ -76,8 +79,9 @@ rpm-ostree kargs --append=amdgpu.ppfeaturemask=0xffffffff
 
 ## Building
 
-`.github/workflows/build.yml` builds on every push to `main`, daily at
-04:00 UTC, and on manual trigger.
+`.github/workflows/build.yml` builds on every push to `main` (except README
+and LICENSE changes), daily at 01:00 UTC, and on manual trigger. About two
+weeks of builds are kept.
 
 Files under `files/` are copied into the image at the same path.
 

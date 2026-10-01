@@ -4,9 +4,12 @@ on:
   push:
     branches:
       - main
-  # Daily rebuild for Fedora updates
+    paths-ignore:
+      - 'README.md'
+      - 'LICENSE'
+  # Daily rebuild, done before clients check for updates at 04:00 local time
   schedule:
-    - cron: '0 4 * * *'
+    - cron: '0 1 * * *'
   workflow_dispatch:
 
 env:
@@ -81,3 +84,11 @@ jobs:
         run: |
           cosign login ghcr.io -u "${{ github.actor }}" -p "${{ secrets.GITHUB_TOKEN }}"
           cosign sign -y --key env://COSIGN_PRIVATE_KEY "$IMAGE@$DIGEST"
+
+      # Keep about two weeks of builds (each build is an image plus a signature)
+      - name: Delete old versions
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: cobaltblue
+          package-type: container
+          min-versions-to-keep: 30

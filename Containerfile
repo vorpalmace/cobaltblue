@@ -3,7 +3,7 @@ ARG FEDORA_VERSION=44
 FROM quay.io/fedora-ostree-desktops/silverblue:${FEDORA_VERSION}
 
 # Flathub only: drop Firefox RPM, GNOME Software (Bazaar replaces it), and Fedora remotes
-RUN dnf -y remove firefox firefox-langpacks gnome-software gnome-software-rpm-ostree || true && \
+RUN dnf -y remove firefox firefox-langpacks gnome-software gnome-software-rpm-ostree && \
     rm -f /etc/flatpak/remotes.d/fedora*.flatpakrepo \
           /usr/share/flatpak/remotes.d/fedora*.flatpakrepo && \
     mkdir -p /usr/share/cobaltblue && \
@@ -42,9 +42,10 @@ RUN dnf -y install dnf5-plugins && \
 COPY files/ /
 COPY cosign.pub /etc/pki/containers/cobaltblue.pub
 
-RUN systemctl enable flathub-setup.service bazaar-install.service \
+RUN systemctl enable flathub-setup.service flatpak-preinstall.service \
         rpm-ostreed-automatic.timer flatpak-system-update.timer && \
-    systemctl --global enable flatpak-user-update.timer
+    systemctl --global enable flatpak-user-update.timer && \
+    sed -i 's|^SHELL=.*|SHELL=/usr/bin/fish|' /etc/default/useradd
 
 # Signed cobaltblue only; rpm-ostree needs a reject default, so allow others per transport
 RUN jq '.default = [{"type": "reject"}] \

@@ -1,0 +1,18 @@
+[Unit]
+Description=Install default Flatpaks from Flathub
+# Runs once, so removed apps stay removed
+ConditionPathExists=!/var/lib/cobaltblue/flatpaks-installed
+Wants=network-online.target
+After=network-online.target flathub-setup.service
+
+[Service]
+Type=oneshot
+StateDirectory=cobaltblue
+ExecStart=/usr/bin/sh -c 'xargs -a /usr/share/cobaltblue/flatpaks flatpak install --system --noninteractive --or-update -y flathub'
+ExecStart=/usr/bin/touch /var/lib/cobaltblue/flatpaks-installed
+# Retry until the network is up
+Restart=on-failure
+RestartSec=1min
+
+[Install]
+WantedBy=multi-user.target
