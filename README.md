@@ -26,7 +26,7 @@ Built daily and published as a signed bootable container image.
 - `steam-devices` udev rules for controllers and VR
 
 ### Tools
-- `fish`, `distrobox`, `fastfetch`, `htop`, `jq`, `micro`, and `vim`
+- `fish`, `distrobox`, `fastfetch`, `htop`, `jq`, and `micro`
 
 ### Updates
 - Daily automatic updates on unmetered connections, following Universal Blue:
