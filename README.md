@@ -9,6 +9,7 @@ Built daily and published as a signed bootable container image.
 - Stock Fedora Silverblue on the current stable release, detected at build time
 - Firefox RPM removed
 - Bazaar instead of GNOME Software
+- distrobox instead of toolbox
 - Installed from Flathub on first boot: Bazaar, Zen Browser, Steam, ONLYOFFICE,
   Obsidian, Fragments, and Celluloid
 - Flathub as the only Flatpak remote

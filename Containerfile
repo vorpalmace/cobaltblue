@@ -2,8 +2,8 @@
 ARG FEDORA_VERSION=44
 FROM quay.io/fedora-ostree-desktops/silverblue:${FEDORA_VERSION}
 
-# Flathub only: drop Firefox RPM, GNOME Software (Bazaar replaces it), and Fedora remotes
-RUN dnf -y remove firefox firefox-langpacks gnome-software gnome-software-rpm-ostree && \
+# Drop Firefox RPM, GNOME Software (Bazaar replaces it), toolbox (distrobox replaces it), and Fedora remotes
+RUN dnf -y remove firefox firefox-langpacks gnome-software gnome-software-rpm-ostree toolbox && \
     rm -f /etc/flatpak/remotes.d/fedora*.flatpakrepo \
           /usr/share/flatpak/remotes.d/fedora*.flatpakrepo && \
     mkdir -p /usr/share/cobaltblue && \
