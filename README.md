@@ -21,6 +21,9 @@ Built daily and published as a signed bootable container image.
 
 ### System
 - `NetworkManager-wait-online` disabled
+- Services that hang on shutdown are killed after 15 seconds
+- Rescue and emergency mode bootable from GRUB despite the locked root account
+  (from CoreOS)
 
 ### Gaming
 - LACT for GPU clocks, undervolting, power limit, and fan curve, with overdrive
