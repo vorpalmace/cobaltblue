@@ -1,4 +1,4 @@
-# Workflow passes the current release; 44 is the local-build fallback
+# Workflow passes the newest release; 44 is the local-build fallback
 ARG FEDORA_VERSION=44
 FROM quay.io/fedora-ostree-desktops/silverblue:${FEDORA_VERSION}
 

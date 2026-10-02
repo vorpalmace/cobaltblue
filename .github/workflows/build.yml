@@ -27,11 +27,13 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # Highest "current" release from Bodhi (never betas or Rawhide)
-      - name: Detect current stable Fedora release
+      # Newest stable or branched (pre-release) Fedora from Bodhi, never Rawhide
+      - name: Detect newest Fedora release
         run: |
-          FEDORA_VERSION="$(curl -fsSL 'https://bodhi.fedoraproject.org/releases/?state=current&rows_per_page=100' \
-            | jq -r '.releases[] | select(.id_prefix == "FEDORA") | .version' \
+          FEDORA_VERSION="$(for state in current pending frozen; do
+              curl -fsSL "https://bodhi.fedoraproject.org/releases/?state=$state&rows_per_page=100"
+            done \
+            | jq -r '.releases[] | select(.id_prefix == "FEDORA" and .branch != "rawhide") | .version' \
             | grep -E '^[0-9]+$' | sort -n | tail -n1)"
           if ! [[ "$FEDORA_VERSION" =~ ^[0-9]+$ ]]; then
             echo "Could not detect the Fedora release" >&2

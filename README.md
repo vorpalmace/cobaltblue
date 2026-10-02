@@ -6,7 +6,8 @@ Built daily and published as a signed bootable container image.
 ## Features
 
 ### Base
-- Stock Fedora Silverblue on the current stable release, detected at build time
+- Stock Fedora Silverblue on the newest release, including pre-releases once a
+  release branches from Rawhide
 - Firefox RPM removed
 - Bazaar instead of GNOME Software
 - distrobox instead of toolbox
