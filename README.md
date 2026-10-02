@@ -47,8 +47,8 @@ Built daily and published as a signed bootable container image.
 | Tag | Meaning |
 | --- | --- |
 | `latest` | Newest build, follows Fedora releases |
-| `<fedora>` (e.g. `44`) | Newest build for that release |
-| `<fedora>-<date>` (e.g. `44-20260928`) | A specific build, for rollbacks (last two weeks) |
+| `<fedora>` (e.g. `45`) | Newest build for that release |
+| `<fedora>-<date>` (e.g. `45-20261002`) | A specific build, for rollbacks (last two weeks) |
 
 ## Installation
 
@@ -64,7 +64,7 @@ rpm-ostree rebase ostree-image-signed:docker://ghcr.io/vorpalmace/cobaltblue:lat
 systemctl reboot
 ```
 
-Use a release tag such as `:44` to control major upgrades manually.
+Use a release tag such as `:45` to control major upgrades manually.
 
 ## After the first boot
 

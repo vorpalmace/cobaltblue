@@ -1,5 +1,5 @@
-# Workflow passes the newest release; 44 is the local-build fallback
-ARG FEDORA_VERSION=44
+# Workflow passes the newest release; 45 is the local-build fallback
+ARG FEDORA_VERSION=45
 FROM quay.io/fedora-ostree-desktops/silverblue:${FEDORA_VERSION}
 
 # Drop Firefox RPM, GNOME Software (Bazaar replaces it), toolbox (distrobox replaces it), and Fedora remotes
@@ -47,12 +47,12 @@ RUN systemctl enable flathub-setup.service flatpak-preinstall.service \
     systemctl --global enable flatpak-user-update.timer && \
     sed -i 's|^SHELL=.*|SHELL=/usr/bin/fish|' /etc/default/useradd
 
-# Signed cobaltblue only; rpm-ostree needs a reject default, so allow others per transport
+# Signed cobaltblue only (reject default, others allowed per transport)
 RUN jq '.default = [{"type": "reject"}] \
         | reduce ("docker", "docker-archive", "docker-daemon", "oci", "oci-archive", "dir", "containers-storage") as $t \
             (.; .transports[$t][""] //= [{"type": "insecureAcceptAnything"}]) \
         | .transports.docker["ghcr.io/vorpalmace/cobaltblue"] = [{"type": "sigstoreSigned", "keyPath": "/etc/pki/containers/cobaltblue.pub", "signedIdentity": {"type": "matchRepository"}}]' \
-        /etc/containers/policy.json > /tmp/policy.json && \
+        /usr/share/containers/policy.json > /tmp/policy.json && \
     mv /tmp/policy.json /etc/containers/policy.json
 
 # Unlock LACT overclock/undervolt controls
