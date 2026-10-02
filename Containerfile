@@ -2,10 +2,8 @@
 ARG FEDORA_VERSION=45
 FROM quay.io/fedora-ostree-desktops/silverblue:${FEDORA_VERSION}
 
-# Drop Firefox RPM, GNOME Software (Bazaar replaces it), toolbox (distrobox replaces it), and Fedora remotes
+# Drop Firefox RPM, GNOME Software (Bazaar replaces it), and toolbox (distrobox replaces it)
 RUN dnf -y remove firefox firefox-langpacks gnome-software gnome-software-rpm-ostree toolbox && \
-    rm -f /etc/flatpak/remotes.d/fedora*.flatpakrepo \
-          /usr/share/flatpak/remotes.d/fedora*.flatpakrepo && \
     mkdir -p /usr/share/cobaltblue && \
     curl -fsSLo /usr/share/cobaltblue/flathub.flatpakrepo \
         https://dl.flathub.org/repo/flathub.flatpakrepo
@@ -32,6 +30,7 @@ RUN dnf -y install dnf5-plugins && \
         htop \
         micro \
         gnome-shell-extension-caffeine \
+        adw-gtk3-theme \
         jq \
         gamemode \
         steam-devices \
@@ -47,7 +46,8 @@ COPY files/ /
 COPY cosign.pub /etc/pki/containers/cobaltblue.pub
 
 RUN systemctl enable flathub-setup.service flatpak-preinstall.service uupd.timer && \
-    sed -i 's|^SHELL=.*|SHELL=/usr/bin/fish|' /etc/default/useradd
+    sed -i 's|^SHELL=.*|SHELL=/usr/bin/fish|' /etc/default/useradd && \
+    glib-compile-schemas /usr/share/glib-2.0/schemas
 
 # Signed cobaltblue only (reject default, others allowed per transport)
 RUN jq '.default = [{"type": "reject"}] \

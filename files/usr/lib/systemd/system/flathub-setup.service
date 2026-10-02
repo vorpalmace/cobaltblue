@@ -1,13 +1,12 @@
 [Unit]
-Description=Ensure Flathub is the only system Flatpak remote
+Description=Make Flathub the preferred Flatpak remote
 ConditionPathExists=/usr/share/cobaltblue/flathub.flatpakrepo
 
 [Service]
 Type=oneshot
-# Drop Fedora remotes if present ("-" ignores failure)
-ExecStart=-/usr/bin/flatpak remote-delete --system --force fedora
-ExecStart=-/usr/bin/flatpak remote-delete --system --force fedora-testing
 ExecStart=/usr/bin/flatpak remote-add --system --if-not-exists flathub /usr/share/cobaltblue/flathub.flatpakrepo
+# Unfiltered and ahead of Fedora's remote (default priority 1)
+ExecStart=/usr/bin/flatpak remote-modify --system --enable --no-filter --prio=10 flathub
 RemainAfterExit=yes
 
 [Install]

@@ -12,8 +12,8 @@ Built daily and published as a signed bootable container image.
 - Bazaar instead of GNOME Software
 - distrobox instead of toolbox
 - Installed from Flathub on first boot: Bazaar, Zen Browser, Steam, ONLYOFFICE,
-  Obsidian, Fragments, and Celluloid
-- Flathub as the only Flatpak remote
+  Obsidian, Fragments, Celluloid, MangoHud, and the adw-gtk3 Flatpak themes
+- Flathub as the preferred Flatpak remote; Fedora's stays for its preinstalled apps
 
 ### Codecs (RPM Fusion)
 - Full `ffmpeg` instead of `ffmpeg-free`
@@ -30,12 +30,14 @@ Built daily and published as a signed bootable container image.
 - LACT for GPU clocks, undervolting, power limit, and fan curve, with overdrive
   unlocked via `amdgpu.ppfeaturemask=0xffffffff`
 - GameMode, usable from Flatpak Steam with `gamemoderun %command%`
+- MangoHud for Flatpak Steam: `MANGOHUD=1 %command%`
 - `steam-devices` udev rules for controllers and VR
 
 ### Tools
 - `fish`, `distrobox`, `fastfetch`, `htop`, `jq`, and `micro`
 - fish as the default shell for new users
 - Caffeine GNOME extension (enable it in Extensions)
+- adw-gtk3 theme so GTK3 apps match libadwaita, Flatpaks included
 
 ### Updates
 - [uupd](https://github.com/ublue-os/uupd) updates the OS, Flatpaks, and
@@ -73,13 +75,14 @@ Use a release tag such as `:45` to control major upgrades manually.
 bootc status
 cat /proc/cmdline         # contains amdgpu.ppfeaturemask=0xffffffff
 systemctl status lactd uupd.timer
-flatpak remotes           # only flathub
+flatpak remotes           # flathub first, then fedora
 ```
 
 ## Building
 
 `.github/workflows/build.yml` builds on every push to `main` (except README
-and LICENSE changes), daily at 01:00 UTC, and on manual trigger. About two
+and LICENSE changes), daily at 01:00 UTC, and on manual trigger. The image is
+rechunked into stable layers, so updates only download what changed. About two
 weeks of builds are kept.
 
 Files under `files/` are copied into the image at the same path.
