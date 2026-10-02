@@ -78,11 +78,11 @@ jobs:
             org.opencontainers.image.title=cobaltblue
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
 
-      # All tags share one digest
+      # All tags share one digest; sudo because the rechunked output is root-owned
       - name: Push Image
         run: |
           for tag in latest "$FEDORA_VERSION" "$DATE_TAG"; do
-            skopeo copy --retry-times 3 \
+            sudo --preserve-env=REGISTRY_AUTH_FILE skopeo copy --retry-times 3 \
               --authfile "$REGISTRY_AUTH_FILE" \
               --digestfile /tmp/digest \
               "${{ steps.rechunk.outputs.ref }}" "docker://$IMAGE:$tag"
