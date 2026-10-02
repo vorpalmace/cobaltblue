@@ -21,19 +21,23 @@ RUN dnf -y install \
         gstreamer1-plugins-ugly && \
     dnf clean all
 
-# Base packages; LACT from COPR
+# Base packages; LACT and uupd (ublue's updater) from COPR
 RUN dnf -y install dnf5-plugins && \
     dnf -y copr enable ilyaz/LACT && \
+    dnf -y copr enable ublue-os/packages && \
     dnf -y install \
         fish \
         distrobox \
         fastfetch \
         htop \
         micro \
+        gnome-shell-extension-caffeine \
         jq \
         gamemode \
         steam-devices \
-        lact && \
+        lact \
+        uupd && \
+    dnf -y copr disable ublue-os/packages && \
     systemctl enable lactd && \
     systemctl disable NetworkManager-wait-online.service && \
     dnf clean all
@@ -42,9 +46,7 @@ RUN dnf -y install dnf5-plugins && \
 COPY files/ /
 COPY cosign.pub /etc/pki/containers/cobaltblue.pub
 
-RUN systemctl enable flathub-setup.service flatpak-preinstall.service \
-        rpm-ostreed-automatic.timer flatpak-system-update.timer && \
-    systemctl --global enable flatpak-user-update.timer && \
+RUN systemctl enable flathub-setup.service flatpak-preinstall.service uupd.timer && \
     sed -i 's|^SHELL=.*|SHELL=/usr/bin/fish|' /etc/default/useradd
 
 # Signed cobaltblue only (reject default, others allowed per transport)
@@ -55,7 +57,7 @@ RUN jq '.default = [{"type": "reject"}] \
         /usr/share/containers/policy.json > /tmp/policy.json && \
     mv /tmp/policy.json /etc/containers/policy.json
 
-# Unlock LACT overclock/undervolt controls
+# Unlock LACT overclock/undervolt controls (applied by bootc)
 RUN mkdir -p /usr/lib/bootc/kargs.d && \
     echo 'kargs = ["amdgpu.ppfeaturemask=0xffffffff"]' \
         > /usr/lib/bootc/kargs.d/00-custom-hardware.toml

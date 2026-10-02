@@ -35,10 +35,13 @@ Built daily and published as a signed bootable container image.
 ### Tools
 - `fish`, `distrobox`, `fastfetch`, `htop`, `jq`, and `micro`
 - fish as the default shell for new users
+- Caffeine GNOME extension (enable it in Extensions)
 
 ### Updates
-- Daily automatic updates on unmetered connections, following Universal Blue:
-  OS updates are staged and applied on reboot, Flatpaks update in place
+- [uupd](https://github.com/ublue-os/uupd) updates the OS, Flatpaks, and
+  distroboxes daily and 5 minutes after boot, skipping metered connections,
+  low battery, and heavy load; OS updates apply on reboot
+- Notifications only when updates fail
 - Firmware updates are manual: `fwupdmgr update`
 - Only cosign-signed cobaltblue images are accepted
 
@@ -55,31 +58,22 @@ Built daily and published as a signed bootable container image.
 From Fedora Silverblue:
 
 ```sh
-# 1. Unverified rebase, to install the signing key
-rpm-ostree rebase ostree-unverified-registry:ghcr.io/vorpalmace/cobaltblue:latest
-systemctl reboot
-
-# 2. Switch to signed updates
-rpm-ostree rebase ostree-image-signed:docker://ghcr.io/vorpalmace/cobaltblue:latest
+sudo bootc switch ghcr.io/vorpalmace/cobaltblue:latest
 systemctl reboot
 ```
+
+The image brings its signing policy, so every later update must be signed.
+bootc refuses to switch while rpm-ostree has layered packages.
 
 Use a release tag such as `:45` to control major upgrades manually.
 
 ## After the first boot
 
 ```sh
-rpm-ostree status         # origin starts with ostree-image-signed:
+bootc status
 cat /proc/cmdline         # contains amdgpu.ppfeaturemask=0xffffffff
-systemctl status lactd rpm-ostreed-automatic.timer flatpak-system-update.timer
-systemctl --user status flatpak-user-update.timer
+systemctl status lactd uupd.timer
 flatpak remotes           # only flathub
-```
-
-If the kernel argument is missing:
-
-```sh
-rpm-ostree kargs --append=amdgpu.ppfeaturemask=0xffffffff
 ```
 
 ## Building
@@ -103,8 +97,8 @@ contents as the `SIGNING_SECRET` repository secret.
 
 The image installs the public key as `/etc/pki/containers/cobaltblue.pub`, and
 `/etc/containers/policy.json` only accepts cobaltblue images signed with it.
-After a key change, installed systems reject new images until they rebase
-unverified once more.
+After a key change, installed systems reject new images until the new
+`cosign.pub` is copied to `/etc/pki/containers/cobaltblue.pub`.
 
 Verify an image:
 
