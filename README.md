@@ -68,7 +68,20 @@ Built daily and published as a signed bootable container image.
 
 ## Installation
 
-From Fedora Silverblue:
+### Installer ISO
+
+Download `cobaltblue-installer.iso` from the
+[installer release](https://github.com/vorpalmace/cobaltblue/releases/tag/installer)
+and write it to a USB stick. It's Fedora's Anaconda netinstall preset to install
+`ghcr.io/vorpalmace/cobaltblue:latest`, so it needs network during install.
+Language, disk, partitioning, and users stay interactive; automatic
+partitioning creates Silverblue's layout (`root`, `home`, and `var` subvolumes
+on zstd-compressed btrfs).
+
+`.github/workflows/iso.yml` rebuilds it on manual trigger or when `iso/`
+changes. Rerun it after a Fedora release upgrade to get the newer installer.
+
+### From Fedora Silverblue
 
 ```sh
 sudo bootc switch ghcr.io/vorpalmace/cobaltblue:latest
@@ -92,8 +105,8 @@ flatpak remotes           # flathub first, then fedora
 
 ## Building
 
-`.github/workflows/build.yml` builds on every push to `main` (except README
-and LICENSE changes), daily at 01:00 UTC, and on manual trigger. The image is
+`.github/workflows/build.yml` builds on every push to `main` (except README,
+LICENSE, and installer changes), daily at 01:00 UTC, and on manual trigger. The image is
 rechunked into stable layers, so updates only download what changed. About two
 weeks of builds are kept.
 

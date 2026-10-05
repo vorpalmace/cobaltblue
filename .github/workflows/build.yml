@@ -7,6 +7,8 @@ on:
     paths-ignore:
       - 'README.md'
       - 'LICENSE'
+      - 'iso/**'
+      - '.github/workflows/iso.yml'
   # Daily rebuild, done before clients check for updates at 04:00 local time
   schedule:
     - cron: '0 1 * * *'

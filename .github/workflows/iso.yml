@@ -1,0 +1,71 @@
+name: Build cobaltblue installer ISO
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'iso/**'
+      - '.github/workflows/iso.yml'
+  workflow_dispatch:
+
+jobs:
+  iso:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      # Same detection as build.yml
+      - name: Detect newest Fedora release
+        env:
+          MIN_FEDORA_VERSION: 45
+        run: |
+          FEDORA_VERSION="$({ echo "$MIN_FEDORA_VERSION"
+              curl -fsSL "https://bodhi.fedoraproject.org/releases/?state=current&rows_per_page=100" \
+                | jq -r '.releases[] | select(.id_prefix == "FEDORA") | .version'
+            } | grep -E '^[0-9]+$' | sort -n | tail -n1)"
+          if ! [[ "$FEDORA_VERSION" =~ ^[0-9]+$ ]]; then
+            echo "Could not detect the Fedora release" >&2
+            exit 1
+          fi
+          echo "FEDORA_VERSION=$FEDORA_VERSION" >> "$GITHUB_ENV"
+
+      # Everything netinstall stays under the 2 GiB release asset limit; the image is pulled at install time
+      - name: Download and verify netinstall ISO
+        run: |
+          BASE="https://dl.fedoraproject.org/pub/fedora/linux/releases/$FEDORA_VERSION/Everything/x86_64/iso"
+          CHECKSUM="$(curl -fsSL "$BASE/" | grep -oE 'Fedora-Everything-[^"]+-x86_64-CHECKSUM' | head -n1)"
+          curl -fsSLO "$BASE/$CHECKSUM"
+          curl -fsSLo fedora.gpg https://fedoraproject.org/fedora.gpg
+          gpg --no-default-keyring --keyring ./fedora.kbx --import fedora.gpg
+          gpgv --keyring ./fedora.kbx "$CHECKSUM"
+          ISO="$(grep -oE 'Fedora-Everything-netinst-x86_64-[^)]+\.iso' "$CHECKSUM" | head -n1)"
+          curl -fsSLO "$BASE/$ISO"
+          sha256sum -c --ignore-missing "$CHECKSUM"
+          echo "SOURCE_ISO=$ISO" >> "$GITHUB_ENV"
+
+      # updates.img drops the storage override into the installer's /etc/anaconda/conf.d;
+      # privileged because mkksiso rebuilds the EFI boot image as root
+      - name: Build installer ISO
+        run: |
+          (cd iso/updates && find . -type f | cpio -o -H newc --quiet | gzip -9) > updates.img
+          sudo podman run --rm --privileged -v "$PWD:/w:z" -w /w "registry.fedoraproject.org/fedora:$FEDORA_VERSION" bash -c \
+            "dnf -y install lorax && mkksiso --ks iso/cobaltblue.ks --updates updates.img '$SOURCE_ISO' cobaltblue-installer.iso"
+          sudo chown "$USER:" cobaltblue-installer.iso
+          sha256sum cobaltblue-installer.iso > cobaltblue-installer.iso.sha256
+
+      # One rolling release; the ISO always installs :latest
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view installer >/dev/null 2>&1 || gh release create installer \
+            --title "cobaltblue installer" \
+            --notes "Anaconda netinstall ISO that installs ghcr.io/vorpalmace/cobaltblue:latest. Needs network during install."
+          gh release upload installer cobaltblue-installer.iso cobaltblue-installer.iso.sha256 --clobber
+          gh release edit installer --notes "Anaconda netinstall ISO that installs ghcr.io/vorpalmace/cobaltblue:latest. Needs network during install. Built from $SOURCE_ISO on $(date -u +%Y-%m-%d)."
