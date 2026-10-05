@@ -32,6 +32,7 @@ Built daily and published as a signed bootable container image.
 - GameMode, usable from Flatpak Steam with `gamemoderun %command%`
 - MangoHud for Flatpak Steam: `MANGOHUD=1 %command%`
 - `steam-devices` udev rules for controllers and VR
+- NTSYNC kernel module loaded at boot, used by Proton-GE and recent Wine
 
 ### Tools
 - `fish`, `distrobox`, `fastfetch`, `htop`, `jq`, and `micro`
@@ -75,6 +76,7 @@ Use a release tag such as `:45` to control major upgrades manually.
 bootc status
 cat /proc/cmdline         # contains amdgpu.ppfeaturemask=0xffffffff
 systemctl status lactd uupd.timer
+lsmod | grep ntsync       # NTSYNC module loaded
 flatpak remotes           # flathub first, then fedora
 ```
 
