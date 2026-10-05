@@ -79,7 +79,8 @@ partitioning creates Silverblue's layout (`root`, `home`, and `var` subvolumes
 on zstd-compressed btrfs).
 
 `.github/workflows/iso.yml` rebuilds it on manual trigger or when `iso/`
-changes. Rerun it after a Fedora release upgrade to get the newer installer.
+changes. It uses the newest released Fedora, which can be older than the image;
+rerun it after a Fedora release to get the newer installer.
 
 ### From Fedora Silverblue
 

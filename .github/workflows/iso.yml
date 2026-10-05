@@ -20,15 +20,12 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v7
 
-      # Same detection as build.yml
+      # Newest released Fedora; the installer can be older than the image it deploys
       - name: Detect newest Fedora release
-        env:
-          MIN_FEDORA_VERSION: 45
         run: |
-          FEDORA_VERSION="$({ echo "$MIN_FEDORA_VERSION"
-              curl -fsSL "https://bodhi.fedoraproject.org/releases/?state=current&rows_per_page=100" \
-                | jq -r '.releases[] | select(.id_prefix == "FEDORA") | .version'
-            } | grep -E '^[0-9]+$' | sort -n | tail -n1)"
+          FEDORA_VERSION="$(curl -fsSL "https://bodhi.fedoraproject.org/releases/?state=current&rows_per_page=100" \
+              | jq -r '.releases[] | select(.id_prefix == "FEDORA") | .version' \
+              | grep -E '^[0-9]+$' | sort -n | tail -n1)"
           if ! [[ "$FEDORA_VERSION" =~ ^[0-9]+$ ]]; then
             echo "Could not detect the Fedora release" >&2
             exit 1
