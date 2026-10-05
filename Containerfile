@@ -41,12 +41,18 @@ RUN dnf -y install dnf5-plugins && \
     dnf -y copr disable ublue-os/packages && \
     dnf clean all
 
-# GTK3 light/dark auto switcher from extensions.gnome.org (not packaged by Fedora)
+# GTK3 light/dark auto switcher from extensions.gnome.org; skipped with a warning if this GNOME isn't supported yet
 RUN UUID=legacyschemeautoswitcher@joshimukul29.gmail.com && \
     SHELL_VER="$(rpm -q --qf '%{VERSION}' gnome-shell | cut -d. -f1)" && \
     curl -fsSLo /tmp/ext.zip \
         "https://extensions.gnome.org/download-extension/$UUID.shell-extension.zip?shell_version=$SHELL_VER" && \
-    python3 -m zipfile -e /tmp/ext.zip "/usr/share/gnome-shell/extensions/$UUID" && \
+    if python3 -c 'import json, sys, zipfile; \
+            sys.exit(sys.argv[2] not in json.load(zipfile.ZipFile(sys.argv[1]).open("metadata.json"))["shell-version"])' \
+            /tmp/ext.zip "$SHELL_VER"; then \
+        python3 -m zipfile -e /tmp/ext.zip "/usr/share/gnome-shell/extensions/$UUID"; \
+    else \
+        echo "::warning::$UUID does not support GNOME $SHELL_VER yet, skipped"; \
+    fi && \
     rm /tmp/ext.zip
 
 # files/ mirrors the root filesystem
