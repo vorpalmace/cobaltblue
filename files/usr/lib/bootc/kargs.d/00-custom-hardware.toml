@@ -1,0 +1,2 @@
+# Unlock LACT overclock/undervolt controls
+kargs = ["amdgpu.ppfeaturemask=0xffffffff"]

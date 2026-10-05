@@ -2,8 +2,9 @@
 ARG FEDORA_VERSION=45
 FROM quay.io/fedora-ostree-desktops/silverblue:${FEDORA_VERSION}
 
-# Drop Firefox RPM, GNOME Software (Bazaar replaces it), and toolbox (distrobox replaces it)
-RUN dnf -y remove firefox firefox-langpacks gnome-software gnome-software-rpm-ostree toolbox && \
+# Drop Firefox, tour, help, and apps replaced by Bazaar, distrobox, and Extension Manager
+RUN dnf -y remove firefox firefox-langpacks gnome-software gnome-software-rpm-ostree toolbox \
+        gnome-extensions-app gnome-tour yelp && \
     mkdir -p /usr/share/cobaltblue && \
     curl -fsSLo /usr/share/cobaltblue/flathub.flatpakrepo \
         https://dl.flathub.org/repo/flathub.flatpakrepo
@@ -24,28 +25,37 @@ RUN dnf -y install dnf5-plugins && \
     dnf -y copr enable ilyaz/LACT && \
     dnf -y copr enable ublue-os/packages && \
     dnf -y install \
-        fish \
+        adw-gtk3-theme \
         distrobox \
         fastfetch \
-        htop \
-        micro \
-        gnome-shell-extension-caffeine \
-        adw-gtk3-theme \
-        jq \
+        fish \
         gamemode \
-        steam-devices \
+        gnome-shell-extension-caffeine \
+        htop \
+        jq \
         lact \
+        micro \
+        steam-devices \
         uupd && \
+    dnf -y copr disable ilyaz/LACT && \
     dnf -y copr disable ublue-os/packages && \
-    systemctl enable lactd && \
-    systemctl disable NetworkManager-wait-online.service && \
     dnf clean all
+
+# GTK3 light/dark auto switcher from extensions.gnome.org (not packaged by Fedora)
+RUN UUID=legacyschemeautoswitcher@joshimukul29.gmail.com && \
+    SHELL_VER="$(rpm -q --qf '%{VERSION}' gnome-shell | cut -d. -f1)" && \
+    curl -fsSLo /tmp/ext.zip \
+        "https://extensions.gnome.org/download-extension/$UUID.shell-extension.zip?shell_version=$SHELL_VER" && \
+    python3 -m zipfile -e /tmp/ext.zip "/usr/share/gnome-shell/extensions/$UUID" && \
+    rm /tmp/ext.zip
 
 # files/ mirrors the root filesystem
 COPY files/ /
 COPY cosign.pub /etc/pki/containers/cobaltblue.pub
 
-RUN systemctl enable flathub-setup.service flatpak-preinstall.service uupd.timer && \
+# Services, fish as default shell, GSettings defaults
+RUN systemctl enable flathub-setup.service flatpak-preinstall.service lactd.service uupd.timer && \
+    systemctl disable NetworkManager-wait-online.service && \
     sed -i 's|^SHELL=.*|SHELL=/usr/bin/fish|' /etc/default/useradd && \
     glib-compile-schemas /usr/share/glib-2.0/schemas
 
@@ -56,11 +66,6 @@ RUN jq '.default = [{"type": "reject"}] \
         | .transports.docker["ghcr.io/vorpalmace/cobaltblue"] = [{"type": "sigstoreSigned", "keyPath": "/etc/pki/containers/cobaltblue.pub", "signedIdentity": {"type": "matchRepository"}}]' \
         /usr/share/containers/policy.json > /tmp/policy.json && \
     mv /tmp/policy.json /etc/containers/policy.json
-
-# Unlock LACT overclock/undervolt controls (applied by bootc)
-RUN mkdir -p /usr/lib/bootc/kargs.d && \
-    echo 'kargs = ["amdgpu.ppfeaturemask=0xffffffff"]' \
-        > /usr/lib/bootc/kargs.d/00-custom-hardware.toml
 
 # Catch multiple kernels, broken /usr layout, etc.
 RUN bootc container lint

@@ -68,7 +68,7 @@ jobs:
         id: rechunk
         uses: hhd-dev/rechunk@v1.2.4
         with:
-          rechunk: ghcr.io/hhd-dev/rechunk:v1.2.4
+          rechunk: ghcr.io/hhd-dev/rechunk:v1.2.4  # keep in sync with the action version
           ref: localhost/cobaltblue:build
           prev-ref: ${{ env.IMAGE }}:latest
           version: ${{ env.DATE_TAG }}

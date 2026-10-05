@@ -1,2 +1,5 @@
 [org.gnome.desktop.interface]
 gtk-theme='adw-gtk3'
+
+[org.gnome.shell]
+enabled-extensions=['legacyschemeautoswitcher@joshimukul29.gmail.com']

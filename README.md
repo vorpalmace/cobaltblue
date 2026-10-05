@@ -8,11 +8,13 @@ Built daily and published as a signed bootable container image.
 ### Base
 - Stock Fedora Silverblue on the newest release, including pre-releases once a
   release branches from Rawhide
-- Firefox RPM removed
+- Firefox RPM, GNOME Tour, and Help removed
+- Extension Manager instead of the Extensions app
 - Bazaar instead of GNOME Software
 - distrobox instead of toolbox
 - Installed from Flathub on first boot: Bazaar, Zen Browser, Steam, ONLYOFFICE,
-  Obsidian, Fragments, Celluloid, MangoHud, and the adw-gtk3 Flatpak themes
+  Obsidian, Fragments, Celluloid, Extension Manager, MangoHud, and the adw-gtk3
+  Flatpak themes
 - Flathub as the preferred Flatpak remote; Fedora's stays for its preinstalled apps
 
 ### Codecs (RPM Fusion)
@@ -37,8 +39,9 @@ Built daily and published as a signed bootable container image.
 ### Tools
 - `fish`, `distrobox`, `fastfetch`, `htop`, `jq`, and `micro`
 - fish as the default shell for new users
-- Caffeine GNOME extension (enable it in Extensions)
-- adw-gtk3 theme so GTK3 apps match libadwaita, Flatpaks included
+- Caffeine GNOME extension (enable it in Extension Manager)
+- adw-gtk3 theme so GTK3 apps match libadwaita, Flatpaks included, switched
+  between light and dark automatically by an enabled-by-default extension
 
 ### Updates
 - [uupd](https://github.com/ublue-os/uupd) updates the OS, Flatpaks, and
