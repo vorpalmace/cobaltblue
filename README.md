@@ -6,39 +6,45 @@ Built daily and published as a signed bootable container image.
 ## Features
 
 ### Base
-- Stock Fedora Silverblue on the newest release, including pre-releases once a
-  release branches from Rawhide
-- Firefox RPM, GNOME Tour, and Help removed
+- Stock Fedora Silverblue on the newest stable release, or Fedora 45 if newer
+- Firefox RPM, GNOME Tour, Help, the Fedora background logo, and Fedora's
+  third-party repository switch removed
 - Extension Manager instead of the Extensions app
 - Bazaar instead of GNOME Software
 - distrobox instead of toolbox
 - Installed from Flathub on first boot: Bazaar, Zen Browser, Steam, ONLYOFFICE,
-  Obsidian, Fragments, Celluloid, Extension Manager, MangoHud, and the adw-gtk3
-  Flatpak themes
+  Obsidian, Fragments, Celluloid, Extension Manager, GNOME Firmware, MangoHud,
+  and the adw-gtk3 Flatpak themes
 - Flathub as the preferred Flatpak remote; Fedora's stays for its preinstalled apps
 
-### Codecs (RPM Fusion)
-- Full `ffmpeg` instead of `ffmpeg-free`
-- `mesa-va-drivers-freeworld` for H.264/HEVC hardware decoding
-- GStreamer `bad-freeworld` and `ugly` plugins
+### Video thumbnails (RPM Fusion)
+- `ffmpegthumbnailer` with `libavcodec-freeworld`, so Files shows thumbnails for
+  H.264, HEVC, and other patented codecs (replaces totem's thumbnailer);
+  Flatpak apps bring their own codecs
 
 ### System
-- `NetworkManager-wait-online` disabled
 - Services that hang on shutdown are killed after 15 seconds
 - Rescue and emergency mode bootable from GRUB despite the locked root account
   (from CoreOS)
+- Coredumps kept for 5 days instead of 2 weeks
+- Higher inotify instance limit for many file-watching apps at once
+- Folders sorted first in file dialogs
 
 ### Gaming
 - LACT for GPU clocks, undervolting, power limit, and fan curve, with overdrive
-  unlocked via `amdgpu.ppfeaturemask=0xffffffff`
+  unlocked via `amdgpu.ppfeaturemask=0xfff7ffff` (kernel default plus OverDrive)
 - GameMode, usable from Flatpak Steam with `gamemoderun %command%`
 - MangoHud for Flatpak Steam: `MANGOHUD=1 %command%`
 - `steam-devices` udev rules for controllers and VR
 - NTSYNC kernel module loaded at boot, used by Proton-GE and recent Wine
+- Split-lock mitigation off, so games doing split-lock accesses don't stutter
+- "Not responding" dialog after 20 seconds instead of 5, for games loading
+  shaders
+- After a GPU crash the offending process is killed, and GDM restarts if VRAM
+  was lost (handy when testing LACT overclocks)
 
 ### Tools
 - `fish`, `distrobox`, `fastfetch`, `htop`, `jq`, and `micro`
-- fish as the default shell for new users
 - Caffeine GNOME extension (enable it in Extension Manager)
 - adw-gtk3 theme so GTK3 apps match libadwaita, Flatpaks included, switched
   between light and dark automatically by an enabled-by-default extension
@@ -48,7 +54,8 @@ Built daily and published as a signed bootable container image.
   distroboxes daily and 5 minutes after boot, skipping metered connections,
   low battery, and heavy load; OS updates apply on reboot
 - Notifications only when updates fail
-- Firmware updates are manual: `fwupdmgr update`
+- Firmware updates are manual, never automatic: GNOME Firmware or `fwupdmgr update`
+- rpm-ostree and bootc auto-update timers masked, so uupd is the only updater
 - Only cosign-signed cobaltblue images are accepted
 
 ## Tags
@@ -77,7 +84,7 @@ Use a release tag such as `:45` to control major upgrades manually.
 
 ```sh
 bootc status
-cat /proc/cmdline         # contains amdgpu.ppfeaturemask=0xffffffff
+cat /proc/cmdline         # contains amdgpu.ppfeaturemask=0xfff7ffff
 systemctl status lactd uupd.timer
 lsmod | grep ntsync       # NTSYNC module loaded
 flatpak remotes           # flathub first, then fedora

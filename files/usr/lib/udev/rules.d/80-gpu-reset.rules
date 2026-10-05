@@ -1,0 +1,5 @@
+# After a GPU reset, kill the process that caused it
+ACTION=="change", ENV{DEVNAME}=="/dev/dri/card0", ENV{RESET}=="1", ENV{PID}!="0", RUN+="/usr/bin/kill -9 %E{PID}"
+
+# Restart GDM if VRAM was lost, so the session isn't left frozen
+ACTION=="change", ENV{DEVNAME}=="/dev/dri/card0", ENV{RESET}=="1", ENV{FLAGS}=="1", RUN+="/usr/bin/systemctl restart gdm"

@@ -1,2 +1,2 @@
-# Unlock LACT overclock/undervolt controls
-kargs = ["amdgpu.ppfeaturemask=0xffffffff"]
+# Kernel default plus OverDrive (0x4000) for LACT overclock/undervolt controls
+kargs = ["amdgpu.ppfeaturemask=0xfff7ffff"]

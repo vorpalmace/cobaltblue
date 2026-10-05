@@ -3,3 +3,13 @@ gtk-theme='adw-gtk3'
 
 [org.gnome.shell]
 enabled-extensions=['legacyschemeautoswitcher@joshimukul29.gmail.com']
+
+# Give games 20s (default 5s) to load before the "not responding" dialog
+[org.gnome.mutter]
+check-alive-timeout=uint32 20000
+
+[org.gtk.Settings.FileChooser]
+sort-directories-first=true
+
+[org.gtk.gtk4.Settings.FileChooser]
+sort-directories-first=true
