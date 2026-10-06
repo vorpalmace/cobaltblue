@@ -7,8 +7,8 @@ Built daily and published as a signed bootable container image.
 
 ### Base
 - Stock Fedora Silverblue on the newest stable release, or Fedora 45 if newer
-- Firefox RPM, GNOME Tour, Help, the Fedora background logo, and Fedora's
-  third-party repository switch removed
+- Firefox RPM, GNOME Tour, Help, the Fedora background logo, Fedora's
+  third-party repository switch, browser defaults, and Asian input methods removed
 - Extension Manager instead of the Extensions app
 - Bazaar instead of GNOME Software
 - distrobox instead of toolbox

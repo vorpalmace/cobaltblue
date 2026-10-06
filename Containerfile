@@ -3,10 +3,12 @@ ARG FEDORA_VERSION=45
 FROM quay.io/fedora-ostree-desktops/silverblue:${FEDORA_VERSION}
 
 # Drop Firefox, tour, help, Fedora logo, third-party repo switch, totem's thumbnailer (ffmpegthumbnailer replaces it),
-# and apps replaced by Bazaar, distrobox, and Extension Manager
+# Chromium/Firefox defaults, Japanese input, and apps replaced by Bazaar, distrobox, and Extension Manager
 RUN dnf -y remove firefox firefox-langpacks gnome-software gnome-software-rpm-ostree toolbox \
         gnome-extensions-app gnome-tour yelp gnome-shell-extension-background-logo \
-        fedora-third-party totem-video-thumbnailer && \
+        fedora-third-party totem-video-thumbnailer \
+        fedora-bookmarks fedora-chromium-config fedora-chromium-config-gnome \
+        ibus-anthy ibus-hangul ibus-libpinyin ibus-m17n ibus-typing-booster && \
     mkdir -p /usr/share/cobaltblue && \
     curl -fsSLo /usr/share/cobaltblue/flathub.flatpakrepo \
         https://dl.flathub.org/repo/flathub.flatpakrepo
