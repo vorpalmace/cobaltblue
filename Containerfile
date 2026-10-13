@@ -2,13 +2,12 @@
 ARG FEDORA_VERSION=45
 FROM quay.io/fedora-ostree-desktops/silverblue:${FEDORA_VERSION}
 
-# Drop Firefox, tour, help, Fedora logo, third-party repo switch, totem's thumbnailer (ffmpegthumbnailer replaces it),
-# Chromium/Firefox defaults, Japanese input, and apps replaced by Bazaar, distrobox, and Extension Manager
+# Drop Firefox, Fedora logo, third-party repo switch, totem's thumbnailer (ffmpegthumbnailer replaces it),
+# Chromium/Firefox defaults, Fedora's filtered Flathub, and apps replaced by Bazaar, distrobox, and Extension Manager
 RUN dnf -y remove firefox firefox-langpacks gnome-software gnome-software-rpm-ostree toolbox \
-        gnome-extensions-app gnome-tour yelp gnome-shell-extension-background-logo \
-        fedora-third-party totem-video-thumbnailer \
-        fedora-bookmarks fedora-chromium-config fedora-chromium-config-gnome \
-        ibus-anthy ibus-hangul ibus-libpinyin ibus-m17n ibus-typing-booster && \
+        gnome-extensions-app gnome-shell-extension-background-logo \
+        fedora-third-party fedora-flathub-remote totem-video-thumbnailer \
+        fedora-bookmarks fedora-chromium-config fedora-chromium-config-gnome && \
     mkdir -p /usr/share/cobaltblue && \
     curl -fsSLo /usr/share/cobaltblue/flathub.flatpakrepo \
         https://dl.flathub.org/repo/flathub.flatpakrepo
@@ -59,9 +58,10 @@ RUN UUID=legacyschemeautoswitcher@joshimukul29.gmail.com && \
 COPY files/ /
 COPY cosign.pub /etc/pki/containers/cobaltblue.pub
 
-# Services, uupd as the only updater, GSettings defaults
-RUN systemctl enable flathub-setup.service flatpak-preinstall.service lactd.service uupd.timer && \
-    systemctl mask rpm-ostreed-automatic.timer bootc-fetch-apply-updates.timer && \
+# Services, uupd as the only updater, Flathub as the only Flatpak remote, GSettings defaults
+RUN systemctl enable flathub-setup.service flatpak-preinstall.service flatpak-replace-fedora.service \
+        lactd.service uupd.timer && \
+    systemctl mask rpm-ostreed-automatic.timer bootc-fetch-apply-updates.timer flatpak-add-fedora-repos.service && \
     glib-compile-schemas /usr/share/glib-2.0/schemas
 
 # Signed cobaltblue only (reject default, others allowed per transport)

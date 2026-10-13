@@ -1,0 +1,14 @@
+[Unit]
+Description=Replace Fedora Flatpaks with Flathub's and remove Fedora's remotes
+# Exits at once when no Fedora remote is left, so no network wait on every boot
+After=flathub-setup.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/cobaltblue/replace-fedora-flatpaks
+# Retry until the network is up
+Restart=on-failure
+RestartSec=1min
+
+[Install]
+WantedBy=multi-user.target

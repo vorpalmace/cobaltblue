@@ -1,0 +1,19 @@
+#!/usr/bin/sh
+# Moves Flatpaks from Fedora's remotes to Flathub (same app IDs, so app data stays), then deletes those remotes
+set -eu
+
+# Replaced by Celluloid and Extension Manager instead of moved
+DROP=" org.gnome.Showtime org.gnome.Totem org.gnome.Decibels org.gnome.Extensions "
+
+for remote in fedora fedora-testing; do
+    flatpak remotes --system --show-disabled --columns=name | grep -qx "$remote" || continue
+    for app in $(flatpak list --system --app --columns=application,origin | awk -v r="$remote" '$2 == r { print $1 }'); do
+        case "$DROP" in
+            *" $app "*) flatpak uninstall --system --noninteractive -y "$app" ;;
+            *) flatpak install --system --noninteractive --reinstall -y flathub "$app" ;;
+        esac
+    done
+    flatpak uninstall --system --noninteractive -y --unused
+    # Force, so leftover runtimes from it can't block the removal
+    flatpak remote-delete --system --force "$remote"
+done

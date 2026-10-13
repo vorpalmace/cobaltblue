@@ -66,8 +66,25 @@ jobs:
             --tag localhost/cobaltblue:build \
             --file ./Containerfile .
 
+      # Scheduled builds publish only if packages or downloaded files changed, sparing clients no-op updates
+      - name: Check for changes
+        id: changes
+        run: |
+          FINGERPRINT="$(sudo podman run --rm localhost/cobaltblue:build sh -c \
+              'rpm -qa | sort; find /usr/share/cobaltblue /usr/share/gnome-shell/extensions -type f -exec sha256sum {} + | sort' \
+            | sha256sum | cut -d' ' -f1)"
+          PREVIOUS="$(skopeo inspect --no-tags "docker://$IMAGE:latest" | jq -r '.Labels["cobaltblue.fingerprint"] // empty')" || true
+          echo "FINGERPRINT=$FINGERPRINT" >> "$GITHUB_ENV"
+          if [[ "${{ github.event_name }}" == schedule && "$FINGERPRINT" == "$PREVIOUS" ]]; then
+            echo "Nothing changed since the last build, skipping"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
       # Stable package-based layers, so updates only download what changed
       - name: Rechunk Image
+        if: steps.changes.outputs.changed == 'true'
         id: rechunk
         uses: hhd-dev/rechunk@v1.2.4
         with:
@@ -78,11 +95,13 @@ jobs:
           labels: |
             containers.bootc=1
             ostree.bootable=1
+            cobaltblue.fingerprint=${{ env.FINGERPRINT }}
             org.opencontainers.image.title=cobaltblue
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
 
       # All tags share one digest; sudo because the rechunked output is root-owned
       - name: Push Image
+        if: steps.changes.outputs.changed == 'true'
         run: |
           for tag in latest "$FEDORA_VERSION" "$DATE_TAG"; do
             sudo --preserve-env=REGISTRY_AUTH_FILE skopeo copy --retry-times 3 \
@@ -94,12 +113,14 @@ jobs:
 
       # cosign 3's bundle format isn't found by rpm-ostree; stay on 2.x
       - name: Install cosign
+        if: steps.changes.outputs.changed == 'true'
         uses: sigstore/cosign-installer@v3
         with:
           cosign-release: 'v2.6.5'
 
       # Signing the digest covers all tags
       - name: Sign Image
+        if: steps.changes.outputs.changed == 'true'
         env:
           COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
           COSIGN_PASSWORD: ''  # key has no password
@@ -107,8 +128,9 @@ jobs:
           cosign login ghcr.io -u "${{ github.actor }}" -p "${{ secrets.GITHUB_TOKEN }}"
           cosign sign -y --key env://COSIGN_PRIVATE_KEY "$IMAGE@$DIGEST"
 
-      # Keep about two weeks of builds (each build is an image plus a signature)
+      # Keep the last 15 builds (each build is an image plus a signature)
       - name: Delete old versions
+        if: steps.changes.outputs.changed == 'true'
         uses: actions/delete-package-versions@v5
         with:
           package-name: cobaltblue

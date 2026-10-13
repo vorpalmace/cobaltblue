@@ -1,12 +1,12 @@
 [Unit]
-Description=Make Flathub the preferred Flatpak remote
+Description=Set up Flathub as the Flatpak remote
 ConditionPathExists=/usr/share/cobaltblue/flathub.flatpakrepo
 
 [Service]
 Type=oneshot
 ExecStart=/usr/bin/flatpak remote-add --system --if-not-exists flathub /usr/share/cobaltblue/flathub.flatpakrepo
-# Unfiltered and ahead of Fedora's remote (default priority 1)
-ExecStart=/usr/bin/flatpak remote-modify --system --enable --no-filter --prio=10 flathub
+# Unfiltered, also on systems set up with Fedora's filtered Flathub
+ExecStart=/usr/bin/flatpak remote-modify --system --enable --no-filter flathub
 RemainAfterExit=yes
 
 [Install]

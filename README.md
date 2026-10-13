@@ -7,15 +7,19 @@ Built daily and published as a signed bootable container image.
 
 ### Base
 - Stock Fedora Silverblue on the newest stable release, or Fedora 45 if newer
-- Firefox RPM, GNOME Tour, Help, the Fedora background logo, Fedora's
-  third-party repository switch, browser defaults, and Asian input methods removed
+- Firefox RPM, the Fedora background logo, Fedora's third-party repository
+  switch, and browser defaults removed
 - Extension Manager instead of the Extensions app
 - Bazaar instead of GNOME Software
 - distrobox instead of toolbox
 - Installed from Flathub on first boot: Bazaar, Zen Browser, Steam, ONLYOFFICE,
   Obsidian, Fragments, Celluloid, Extension Manager, GNOME Firmware, MangoHud,
-  and the adw-gtk3 Flatpak themes
-- Flathub as the preferred Flatpak remote; Fedora's stays for its preinstalled apps
+  the adw-gtk3 Flatpak themes, and the GNOME apps Silverblue gets from Fedora
+  (Text Editor, Calculator, Image Viewer, Document Viewer, Document Scanner,
+  Calendar, Weather, Maps, Media Writer, and others), except its video player,
+  plus Boxes
+- Flathub as the only Flatpak remote: Fedora's remote is removed, and apps
+  installed from it are reinstalled from Flathub with their data kept
 
 ### Video thumbnails (RPM Fusion)
 - `ffmpegthumbnailer` with `libavcodec-freeworld`, so Files shows thumbnails for
@@ -64,7 +68,7 @@ Built daily and published as a signed bootable container image.
 | --- | --- |
 | `latest` | Newest build, follows Fedora releases |
 | `<fedora>` (e.g. `45`) | Newest build for that release |
-| `<fedora>-<date>` (e.g. `45-20261002`) | A specific build, for rollbacks (last two weeks) |
+| `<fedora>-<date>` (e.g. `45-20261002`) | A specific build, for rollbacks (last 15 builds) |
 
 ## Installation
 
@@ -101,15 +105,16 @@ bootc status
 cat /proc/cmdline         # contains amdgpu.ppfeaturemask=0xfff7ffff
 systemctl status lactd uupd.timer
 lsmod | grep ntsync       # NTSYNC module loaded
-flatpak remotes           # flathub first, then fedora
+flatpak remotes           # only flathub
 ```
 
 ## Building
 
 `.github/workflows/build.yml` builds on every push to `main` (except README,
 LICENSE, and installer changes), daily at 01:00 UTC, and on manual trigger. The image is
-rechunked into stable layers, so updates only download what changed. About two
-weeks of builds are kept.
+rechunked into stable layers, so updates only download what changed. Daily
+builds are only published when a package or downloaded file changed. The last
+15 builds are kept.
 
 Files under `files/` are copied into the image at the same path.
 
